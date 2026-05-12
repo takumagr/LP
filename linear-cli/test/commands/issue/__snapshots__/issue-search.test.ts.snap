@@ -1,0 +1,48 @@
+export const snapshot = {};
+
+snapshot[`Issue Search Command - Help Text 1`] = `
+stdout:
+"
+Usage: search <query>
+
+Description:
+
+  Deprecated: use \`issue list\` or \`api\` for issue filtering
+
+Options:
+
+  -h, --help                       - Show this help.                                  
+  -j, --json                       - Output as JSON                                   
+  -n, --limit             <limit>  - Maximum number of results           (Default: \\x1b[33m20\\x1b[39m)
+  -a, --include-archived           - Include archived issues in results               
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Search Command - Empty Query 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to search issues: Search query cannot be empty
+"
+`;
+
+snapshot[`Issue Search Command - Deprecated 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to search issues: \`issue search\` is deprecated because Linear's dedicated search endpoint is deprecated.
+  Use \`linear issue list | grep <keyword>\`, \`linear issue list --json | jq ...\`, or \`linear api\` for custom GraphQL queries.
+"
+`;
+
+snapshot[`Issue Search Command - Deprecated With JSON Flag 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to search issues: \`issue search\` is deprecated because Linear's dedicated search endpoint is deprecated.
+  Use \`linear issue list | grep <keyword>\`, \`linear issue list --json | jq ...\`, or \`linear api\` for custom GraphQL queries.
+"
+`;

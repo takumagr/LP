@@ -1,0 +1,124 @@
+export const snapshot = {};
+
+snapshot[`Webhook Delete Command - Help Text 1`] = `
+stdout:
+"
+Usage: delete <webhookId>
+
+Description:
+
+  Delete a webhook
+
+Options:
+
+  -h, --help         - Show this help.                                    
+  -i, --interactive  - Enable interactive confirmation                    
+  -y, --yes          - Skip confirmation prompt                           
+  -j, --json         - Output as JSON                                     
+  --dry-run          - Preview the deletion without mutating the webhook  
+
+Examples:
+
+  Preview deleting a webhook         linear webhook delete webhook_123 --dry-run   
+  Delete a webhook without prompting linear webhook delete webhook_123 --yes --json
+
+"
+stderr:
+""
+`;
+
+snapshot[`Webhook Delete Command - Deletes Webhook 1`] = `
+stdout:
+"✓ Deleted webhook: Issue events
+"
+stderr:
+""
+`;
+
+snapshot[`Webhook Delete Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "webhook-1",
+  "label": "Issue events",
+  "url": "https://example.com/hooks/issues",
+  "success": true,
+  "receipt": {
+    "operationId": "webhook.delete",
+    "resource": "webhook",
+    "action": "delete",
+    "resolvedRefs": {
+      "webhookId": "webhook-1",
+      "webhookUrl": "https://example.com/hooks/issues"
+    },
+    "appliedChanges": [
+      "deletion"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "webhook.delete",
+    "resource": "webhook",
+    "action": "delete",
+    "summary": "Deleted webhook webhook-1",
+    "refs": {
+      "webhookId": "webhook-1",
+      "webhookUrl": "https://example.com/hooks/issues"
+    },
+    "changes": [
+      "deletion"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Webhook Delete Command - Dry Run JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would delete webhook Issue events",
+  "data": {
+    "command": "webhook.delete",
+    "operation": "delete",
+    "destructive": true,
+    "target": {
+      "resource": "webhook",
+      "id": "webhook-1",
+      "label": "Issue events",
+      "url": "https://example.com/hooks/issues"
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "webhook.delete",
+    "resource": "webhook",
+    "action": "delete",
+    "summary": "Would delete webhook Issue events",
+    "refs": {
+      "id": "webhook-1",
+      "label": "Issue events",
+      "url": "https://example.com/hooks/issues"
+    },
+    "changes": [],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;

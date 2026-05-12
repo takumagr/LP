@@ -1,0 +1,105 @@
+export const snapshot = {};
+
+snapshot[`Cycle List Command - Help Text 1`] = `
+stdout:
+"
+Usage: list
+
+Description:
+
+  List cycles for a team
+
+Options:
+
+  -h, --help          - Show this help.                           
+  --team      <team>  - Team key (defaults to current team)       
+  -j, --json          - Output as JSON                            
+  --no-pager          - Disable automatic paging for long output  
+
+Examples:
+
+  List cycles as JSON         linear cycle list --team ENG --json    
+  List cycles without a pager linear cycle list --team ENG --no-pager
+
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle List Command - With Mock Cycles 1`] = `
+stdout:
+"#  NAME      START      END        STATUS   
+14 Sprint 14 2026-03-10 2026-03-24 Upcoming 
+13 Sprint 13 2026-02-24 2026-03-10 Active   
+12 Sprint 12 2026-02-10 2026-02-24 Completed
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle List Command - With No Pager Flag 1`] = `
+stdout:
+"#  NAME      START      END        STATUS   
+13 Sprint 13 2026-02-24 2026-03-10 Active   
+12 Sprint 12 2026-02-10 2026-02-24 Completed
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle List Command - JSON Output 1`] = `
+stdout:
+'[
+  {
+    "id": "cycle-2",
+    "number": 13,
+    "name": "Sprint 13",
+    "startsAt": "2026-02-24T00:00:00.000Z",
+    "endsAt": "2026-03-10T00:00:00.000Z",
+    "completedAt": null,
+    "status": "active",
+    "isActive": true,
+    "isFuture": false,
+    "isPast": false
+  },
+  {
+    "id": "cycle-1",
+    "number": 12,
+    "name": "Sprint 12",
+    "startsAt": "2026-02-10T00:00:00.000Z",
+    "endsAt": "2026-02-24T00:00:00.000Z",
+    "completedAt": "2026-02-24T00:00:00.000Z",
+    "status": "completed",
+    "isActive": false,
+    "isFuture": false,
+    "isPast": true
+  }
+]
+'
+stderr:
+""
+`;
+
+snapshot[`Cycle List Command - No Cycles Found 1`] = `
+stdout:
+"No cycles found for this team.
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle List Command - JSON Missing Team Reference 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "not_found",
+    "message": "Team not found: CLI",
+    "suggestion": null,
+    "context": "Failed to list cycles"
+  }
+}
+'
+stderr:
+""
+`;

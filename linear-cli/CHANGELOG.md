@@ -1,0 +1,820 @@
+# Changelog
+
+## [3.2.0] - 2026-04-13
+
+### Added
+
+- added normalized source-adjacent intake for `issue create` and `issue update` through `--context-file`, so upstream tooling can hand the CLI a deterministic external-context envelope instead of wrapper-specific markdown glue
+- added deterministic source triage preview/apply support for source-adjacent intake, including `--apply-triage` and explicit `--autonomy-policy suggest-only|preview-required|apply-allowed` controls
+- added source provenance to write receipts and a stable `linear resolve pack --json` context-pack surface so multi-entity agent workflows can resolve shared issue/team/user/project context in one step
+
+### Changed
+
+- refreshed the README, runtime docs, and generated skill guidance so the current `v3` runtime explains source-adjacent intake as a first-class agent path
+
+## [3.1.0] - 2026-04-05
+
+### Added
+
+- expanded Automation Contract v7 across remaining high-value write surfaces, including issue assignment, estimate, move, priority, notification read/archive, project create and project-label mutations, and webhook create/update/delete flows
+- enriched `linear capabilities` with more parser-complete metadata such as aliases, repeatability, variadic inputs, defaults, canonical examples, resolution sources, and stronger machine-readable constraints
+- added machine-readable surface classification to `linear capabilities`, distinguishing `stable`, `partial`, and `escape_hatch` runtime surfaces for agent callers
+
+### Changed
+
+- expanded downstream certification from a single generic suite into named startup-monitor, control-plane, diagnostics, compatibility-bridge, and timeout-recovery consumer paths so release gates match real agent-runtime usage more closely
+
+## [3.0.1] - 2026-04-05
+
+### Changed
+
+- published a copy-pasteable v2-to-v3 migration cookbook and strengthened the v3 release guide around startup, diagnostics, and explicit compatibility-mode guidance
+- expanded the v3 release gate to certify both the native startup/discovery path and the explicit compatibility path for diagnostics and human/debug inspection
+
+### Fixed
+
+- improved common v3 compatibility failures so runtime suggestions point callers to `--text`, `--compat v1`, or `--profile human-debug --interactive` instead of forcing migration guidance to live only in docs
+
+## [3.0.0] - 2026-04-04
+
+### Added
+
+- extended the shared `operation` and `receipt` contract family across remaining high-value write commands, including issue assignment/estimate/move/priority, project create and project-label mutation flows, webhook writes, and batch issue creation
+- published an agent-native v3 migration guide and rewrote the README and skill/docs stack around AI agent runtimes instead of mixed human/operator usage
+
+### Changed
+
+- changed the default runtime to agent-native execution for core startup, read, and representative write surfaces by making machine-readable JSON the default output mode and relegating human-readable output to the explicit `--text` escape hatch
+- removed implicit interactive fallback behavior from startup-critical paths; prompt-driven flows now require explicit `--profile human-debug --interactive`
+- made `agent-safe` the default execution profile, so pager-off behavior, longer write timeout defaults, and explicit destructive confirmation semantics are the standard runtime path
+- promoted the richer `linear capabilities` schema metadata to the default discovery surface and kept the legacy trimmed shape available only through explicit `--compat v1`
+
+## [2.15.0] - 2026-04-03
+
+### Added
+
+- added a global `--profile agent-safe` execution profile that disables pager by default, extends write timeouts, and requires explicit `--yes` for destructive confirmation flows in automation contexts
+
+### Changed
+
+- added downstream consumer certification to the release gate so startup discovery, resolve, preview/apply, and timeout-recovery paths used by real agent workflows cannot drift silently
+
+## [2.14.0] - 2026-04-03
+
+### Added
+
+- added operation receipts to high-value write JSON results so agents can inspect resolved refs, applied changes, no-op state, partial success, and next safe actions from a shared receipt surface
+- unified representative `--dry-run` previews and apply results under the same top-level `operation` contract family for safer plan/apply loops
+- added Automation Contract v6 for `linear resolve issue/team/workflow-state/user/label --json`, giving agents a machine-readable reference resolution surface before previewing or applying writes
+
+## [2.13.0] - 2026-04-02
+
+### Added
+
+- enriched `linear capabilities --json --compat v2` with defaults, context resolution hints, input constraints, canonical argv examples, and explicit success/failure envelope fields so agents can assemble commands with less help-text scraping
+
+## [2.12.4] - 2026-04-02
+
+### Added
+
+- enriched `linear capabilities --json --compat v2` with required and optional input metadata, constrained values, stdin/file targets, and structured output contract hints for agents
+
+### Changed
+
+- release-gated the startup-critical agent contracts in CI so the default `linear capabilities --json` shape and core read entrypoints cannot drift silently across releases
+
+### Fixed
+
+- made generated skill docs template-driven so `deno task generate-skill-docs` no longer drifts from the maintained source guidance
+- added automated checks that keep contract docs and high-value agent examples aligned with the current CLI version and capabilities compatibility semantics
+
+## [2.12.3] - 2026-03-31
+
+### Fixed
+
+- strengthened `timeout_error` write contracts with machine-readable `appliedState` and `callerGuidance` so callers can distinguish between applied, uncertain, and failed outcomes after reconciliation
+
+## [2.12.2] - 2026-03-31
+
+### Fixed
+
+- restored `linear capabilities --json` to a startup-safe `v1` machine-readable shape by default, while requiring `--compat v2` for richer schema metadata
+
+## [2.12.1] - 2026-03-30
+
+### Added
+
+- added `stateName` to `issue list --json` as an additive convenience field while keeping the nested `state` object unchanged
+
+### Changed
+
+- refreshed the README, agent workflow docs, and skills.sh install guidance to better position `linear-cli` as an agent-first Linear CLI
+
+### Fixed
+
+- preserved agent-first generated skill docs so `deno task generate-skill-docs` no longer reverts the published skill description and command guidance
+
+## [2.12.0] - 2026-03-30
+
+### Added
+
+- added schema-style metadata to `linear capabilities --json` so agents can inspect command arguments, input modes, output semantics, and exit codes without scraping docs
+- added Automation Contract v5 coverage for `initiative list/view --json`, `project-update list --json`, and `initiative-update list --json`
+
+### Changed
+
+- upgraded write timeout handling to reconcile against Linear after client-side confirmation timeouts, distinguishing `probably_succeeded`, `definitely_failed`, and `partial_success` outcomes for high-value write commands
+
+## [2.11.0] - 2026-03-30
+
+### Added
+
+- added `linear capabilities --json` so agents can discover supported JSON, dry-run, stdin, confirmation, and retry semantics without scraping help text
+- added Automation Contract v4 coverage for `team`, `user`, `workflow-state`, and label read surfaces
+
+### Changed
+
+- standardized write retry semantics with explicit idempotency categories, retry-safe notification archive/read behavior, and shared partial-success metadata
+
+### Fixed
+
+- improved write timeout semantics with distinct `timeout_error` JSON failures, exit code `6`, and clearer partial-success details for combined write flows such as `issue update --comment --json`
+
+## [2.10.0] - 2026-03-30
+
+### Added
+
+- added Automation Contract v3 coverage for `document list/view --json`
+- added Automation Contract v3 coverage for `webhook list/view --json`
+- added Automation Contract v3 coverage for `notification list/count --json`
+
+## [2.9.1] - 2026-03-29
+
+### Fixed
+
+- stabilized `issue update --comment --json` so the combined update-and-comment path returns reliably to callers and reports machine-readable partial-success details when only the comment step fails
+
+## [2.9.0] - 2026-03-28
+
+### Added
+
+- added stdin / pipeline support to high-value issue write commands and documented the stdin policy for automation use
+- added retry-safe relation semantics so repeated `issue relation add/delete` operations can return no-op success instead of failing
+- added `--no-pager` compatibility support to `issue create`
+
+### Changed
+
+- standardized confirmation bypass flags on destructive commands around `--yes`, while keeping legacy aliases for compatibility
+- expanded agent-focused `--help` examples across automation-tier and major write commands
+
+### Fixed
+
+- improved `-d/--description` parse failures to recommend `--description-file` or stdin for markdown content, and documented the same guidance in help and README
+
+## [2.8.2] - 2026-03-24
+
+### Added
+
+- added rate-limit retry guidance and `error.details.rateLimit` metadata for automation consumers when issue creation hits API throttling
+
+### Changed
+
+- distinguished plan-limit failures from generic automation errors with exit code `5` and clearer upgrade/archive guidance
+
+## [2.8.1] - 2026-03-24
+
+### Added
+
+- added `--dry-run` support to `issue start` so agents and scripts can preview branch naming and target state transitions before mutating Linear or local VCS state
+
+## [2.8.0] - 2026-03-24
+
+### Added
+
+- added a shared `--dry-run` contract and preview output for automation-safe write workflows
+- added `--dry-run` support to issue, project, milestone, document, and webhook write commands
+- added Automation Contract v2 coverage for `project list/view --json`
+- added Automation Contract v2 coverage for `cycle list/view/current/next --json`
+- added Automation Contract v2 coverage for `milestone list/view --json`
+
+### Changed
+
+- structured `issue create-batch --json` partial-failure responses with created identifiers, retry hints, and failure-step metadata for safer retries
+
+## [2.7.1] - 2026-03-23
+
+### Added
+
+- added working `--no-pager` support to `cycle list`
+
+### Changed
+
+- improved `issue list --all` and `--state` handling so `--all` can be combined with an explicit state filter while conflicting `--all-states` usage reports clearer guidance
+
+### Fixed
+
+- normalized `issue view --json` descriptions so escaped newlines are returned as real line breaks for `jq` and other machine-readable consumers
+
+## [2.7.0] - 2026-03-23
+
+### Added
+
+- added `--comment` to `issue update` so issue edits and follow-up comments can be sent in one command
+- added positional comment body support for `issue comment add ISSUE "body"` while keeping `--body` and `--body-file` support
+- added `--no-pager` to list-oriented commands beyond `issue list` for CI and agent-friendly non-interactive output
+- added `todo` as an alias for `unstarted` in `issue list --state`
+
+### Changed
+
+- clarified valid `issue list --state` values in help and generated docs, including the `todo` alias
+
+### Fixed
+
+- accepted `--no-interactive` on `issue update` for compatibility with existing scripted workflows
+
+## [2.6.0] - 2026-03-18
+
+### Added
+
+- added `--all` to `issue list` as a shortcut for `--all-states --all-assignees --limit 0`
+- added `priorityLabel` and `cycle` to `issue list --json` for better payload parity with bot and planning workflows
+
+### Changed
+
+- clarified in `issue list` help and generated docs that the default scope is issues assigned to the current user unless all assignees are requested
+
+### Fixed
+
+- include unassigned backlog issues in the default `issue list --state backlog` view so backlog triage does not miss unowned work
+
+### Improved
+
+- hardened the local `setup-deno` GitHub Action to download Deno release archives directly with retries instead of relying on `deno.land/install.sh`
+
+## [2.5.0] - 2026-03-18
+
+### Added
+
+- documented Automation Contract v1 for the bot-facing `--json` surface, including stable command coverage, shared value rules, and compatibility guarantees
+
+### Changed
+
+- automation-tier `--json` commands now return a machine-readable JSON error envelope on failure, including parser and argument validation failures before command actions run
+
+### Improved
+
+- added contract-focused tests for JSON error mapping and automation-tier failure output to catch breaking changes earlier
+
+## [2.4.1] - 2026-03-17
+
+### Added
+
+- added JSON output for `issue relation add` and `issue relation delete` so bots and wrappers can create and remove dependencies without parsing terminal text
+
+## [2.4.0] - 2026-03-17
+
+### Added
+
+- added JSON output parity for `team members`, `issue relation list`, and `issue comment add` to support bot-friendly team lookup, dependency traversal, and comment ledger workflows
+- added `issue parent`, `issue children`, and `issue create-batch --file` for explicit issue hierarchy traversal and batch decomposition workflows
+
+## [2.3.0] - 2026-03-17
+
+### Added
+
+- added `issue list --json` with bot-oriented filters for `query`, `parent`, `priority`, `updated-before`, and `due-before`
+- stabilized `issue view --json` with a bot-friendly payload that includes assignee, due date, priority, relations, and comment summaries
+- added `issue create --json` and `issue update --json` with stable response payloads for wrappers and bots
+
+### Improved
+
+- aligned npm trusted publishing with the `publish.yaml` workflow used by release automation
+
+## [2.2.1] - 2026-03-17
+
+### Fixed
+
+- added due date display to `issue view` and `issue list`, and added `issue update --clear-due-date`
+
+### Improved
+
+- updated npm publishing to use trusted publishing for future releases
+
+## [2.2.0] - 2026-03-15
+
+### Added
+
+- added `workflow-state list` and `workflow-state view` commands with team-scoped and JSON output support
+- added `user list` and `user view` commands for organization-wide user lookup with JSON output support
+- added `project-label list` plus `project label add/remove` commands for project label discovery and assignment
+
+### Improved
+
+- documented ClawHub skill publishing for the published `kyaukyuai-linear-cli` slug and fixed npm release tarball handling for future releases
+
+## [2.1.0] - 2026-03-13
+
+### Added
+
+- added inbox notification commands for `list`, `count`, `read`, and `archive`, including `--json` output for scripting
+- added webhook commands for `list`, `view`, `create`, `update`, and `delete` with team-scoped and all-public-team support
+
+### Changed
+
+- deprecated `issue search`; it now exits with guidance to use `issue list`, `issue list --json`, or `api` instead of the removed search endpoint
+
+### Improved
+
+- hardened release automation by splitting npm publish from cargo-dist release flow, skipping already-published npm/JSR versions, removing npm release-asset polling, and updating GitHub Actions for the Node 24 transition
+- added a release runbook for verification, recovery steps, and manual publish fallback
+
+## [2.0.1] - 2026-03-13
+
+### Improved
+
+- refined package metadata and publishing provenance for the forked JSR distribution
+
+## [2.0.0] - 2026-03-13
+
+> First fork release of `kyaukyuai/linear-cli`.
+
+### Added (fork-specific features)
+
+- expanded Linear coverage with cycle, milestone, document, initiative, project update/delete, issue relation, issue attachment, issue comment delete, and raw GraphQL/schema commands
+- added workflow commands for `issue search`, `issue assign`, `issue move`, `issue priority`, `issue estimate`, and `issue label add/remove`
+- added workspace-aware authentication and credential management, including `auth login/logout/list/default/token/whoami/migrate`, system keyring support, and `--workspace`
+- added scriptable output modes across forked commands, including JSON output for project, document, issue, and cycle workflows
+- added agent-oriented assets and distribution channels, including the Claude Code skill plugin, generated skill docs, npm publishing, and the `kyaukyuai/homebrew-tap` release target
+
+### Changed
+
+- rebranded the fork to `kyaukyuai/linear-cli`, including package scope `@kyaukyuai/linear-cli`, release infrastructure, install instructions, and marketplace references
+- standardized release and maintainer workflows around git-based automation while preserving runtime support for both git and jj in the CLI itself
+- updated configuration and install flows to better support multi-workspace use, project/global config merging, and package-manager based execution
+
+### Improved
+
+- improved CLI reliability with structured validation errors, better auth/config guidance, safer non-TTY spinner handling, and stronger error-path test coverage
+- improved terminal UX with pager support, richer issue/project/document rendering, relative-time fixes, local image and attachment handling, and more JSON-first scripting paths
+- improved internal maintainability with shared helpers such as `withSpinner()`, `resolveIssueInternalId()`, label setup deduplication, deterministic snapshots, and synchronized generated docs/workflows
+
+## [1.11.1] - 2026-03-06
+
+### Added
+
+- publish to npm as @schpet/linear-cli, enabling installation via npm/bun as a dev dependency
+
+## [1.11.0] - 2026-03-05
+
+### Added
+
+- project update and delete commands, plus --json flag for project commands ([#148](https://github.com/schpet/linear-cli/pull/148); thanks @chronosis)
+- cycle list and view commands, plus --cycle filter for issue list ([#162](https://github.com/schpet/linear-cli/pull/162); thanks @regaw-leinad)
+- issue comment delete command ([#161](https://github.com/schpet/linear-cli/pull/161); thanks @jholm117)
+- cycle support for issue create and update commands ([#150](https://github.com/schpet/linear-cli/pull/150); thanks @jholm117)
+- milestone support for issue create and update commands ([#149](https://github.com/schpet/linear-cli/pull/149); thanks @jholm117)
+
+### Fixed
+
+- project update date validation now works correctly when combined with other flags
+- issue view no longer sends auth headers to non-Linear image domains ([#154](https://github.com/schpet/linear-cli/pull/154); thanks @hmnd)
+- project lookup now falls back to slug ID when name match fails ([#158](https://github.com/schpet/linear-cli/pull/158); thanks @mipearson)
+- success message order corrected for 'blocked-by' issue relations
+- git command errors now report more helpful messages
+
+## [1.10.0] - 2026-02-17
+
+### Fixed
+
+- issue start command no longer creates extra commit after describing
+- spinners now properly disabled in non-TTY environments
+- correct API key creation URL in auth login ([#146](https://github.com/schpet/linear-cli/pull/146); thanks @srgfrancisco)
+
+### Changed
+
+- increased sub-issues display limit from 50 to 250 in issue view ([#124](https://github.com/schpet/linear-cli/pull/124); thanks @paymog)
+- attachment view now shows sourceType (e.g., Slack, GitHub) ([#111](https://github.com/schpet/linear-cli/pull/111); thanks @paymog)
+
+### Added
+
+- raw GraphQL API access via new `api` subcommand ([#121](https://github.com/schpet/linear-cli/pull/121); thanks @bendrucker)
+- issue relation command for managing dependencies between issues ([#115](https://github.com/schpet/linear-cli/pull/115); thanks @ztrayner)
+- `--sort-order` flag to milestone update command ([#120](https://github.com/schpet/linear-cli/pull/120); thanks @bendrucker)
+- user-friendly error handling with LINEAR_DEBUG environment variable for troubleshooting
+
+## [1.9.1] - 2026-01-29
+
+### Fixed
+
+- switched to --allow-all for Deno permissions since --allow-run was already unrestricted (making granular permissions ineffective) and the permission flags frequently caused issues when downloading images from arbitrary domains in Linear comments
+
+## [1.9.0] - 2026-01-29
+
+### Fixed
+
+- Fix `--assignee self` to correctly resolve to current user ([#104](https://github.com/schpet/linear-cli/pull/104); thanks @JustTrott)
+- add pagination to `project list` command ([#109](https://github.com/schpet/linear-cli/pull/109); thanks @andrew-kline)
+- add pagination to `team list` command ([#107](https://github.com/schpet/linear-cli/pull/107); thanks @andrew-kline)
+- error when `--workspace` flag specifies unknown workspace
+- `--sort` flag now works correctly after interactive prompts ([#96](https://github.com/schpet/linear-cli/pull/96); thanks @paymog)
+
+### Added
+
+- built-in credential storage at `~/.config/linear/credentials.toml` for managing multiple Linear workspaces
+- `linear auth login` to add workspace credentials (auto-detects workspace from API key)
+- `linear auth logout` to remove workspace credentials
+- `linear auth list` to show configured workspaces with org/user info
+- `linear auth default` to set the default workspace
+- global `-w, --workspace` flag to target a specific workspace by slug
+- `--project` filter for `issue list` command ([#94](https://github.com/schpet/linear-cli/pull/94); thanks @paymog)
+
+## [1.8.1] - 2026-01-23
+
+### Fixed
+
+- sync deno permissions to compiled binaries ensuring uploads, public downloads, and config paths work correctly
+
+## [1.8.0] - 2026-01-22
+
+### Fixed
+
+- add TTY checks before interactive prompts to prevent hanging in non-interactive mode
+
+### Added
+
+- global user config is now merged with project config (`~/.config/linear/linear.toml` on Unix, `%APPDATA%\linear\linear.toml` on Windows); project values override global, env vars override both ([#89](https://github.com/schpet/linear-cli/pull/89); thanks @kfrance)
+- requests now include a User-Agent header (schpet-linear-cli/VERSION)
+- initiative management commands (list, view, create, archive, unarchive, update, delete, add-project, remove-project) ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- label management commands (list, create, delete) ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- project create command with team, lead, dates, status, and initiative linking ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- team delete command ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- bulk operations support for issue delete (--bulk flag) ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- document management commands (list, view, create, update, delete) ([#95](https://github.com/schpet/linear-cli/pull/95); thanks @skgbafa)
+- auto-generate skill documentation from cli help output with deno task generate-skill-docs
+- file attachment support for issues and comments via `issue attach` command and `--attach` flag on `issue comment add`
+- attachments section in `issue view` output with automatic download to local cache
+- `attachment_dir` and `auto_download_attachments` config options
+
+## [1.7.0] - 2026-01-09
+
+### Added
+
+- milestone management commands (list, create, update, delete, view) for Linear projects ([#92](https://github.com/schpet/linear-cli/pull/92); thanks @jholm117)
+
+### Fixed
+
+- environment variables now correctly take precedence over config file values
+
+## [1.6.0] - 2026-01-05
+
+### Added
+
+- add parent and sub-issues to issue view output ([#86](https://github.com/schpet/linear-cli/pull/86); thanks [@paymog](https://github.com/paymog))
+
+### Changed
+
+- prefix issue title with identifier in issue view output
+
+## [1.5.0] - 2025-12-16
+
+### Fixed
+
+- bring back x86_64-apple-darwin binaries
+
+### Added
+
+- add issue commits command to print previous commits associated with an issue (jj-vcs only)
+
+## [1.4.0] - 2025-12-08
+
+### Added
+
+- issue view now downloads images locally instead of showing authenticated uploads.linear.app urls (disable with --no-download flag, LINEAR_DOWNLOAD_IMAGES=false env var, or download_images = false in config)
+- optional OSC-8 hyperlinks for images in issue view (configure with hyperlink_format option or LINEAR_HYPERLINK_FORMAT env var)
+- claude code skill plugin for linear-cli
+- schema command to print GraphQL schema (SDL or JSON)
+- auth command with whoami and token subcommands
+- ISC license
+
+## [1.3.1] - 2025-12-02
+
+### Fixed
+
+- correctly use arm binaries for aarch64-apple-darwin
+- apply manual sort within priority groups when sorting by priority
+
+### Removed
+
+- remove compiled binaries for intel macs - x86_64-apple-darwin
+
+## [1.3.0] - 2025-12-01
+
+### Changed
+
+- change the jj description format to include a linear magic word for [commit linking](https://linear.app/changelog/2022-02-03-github-commit-linking)
+- change jj behaviour in issue start to create a new empty commit to support [the squash workflow](https://steveklabnik.github.io/jujutsu-tutorial/real-world-workflows/the-squash-workflow.html)
+
+### Added
+
+- issue comment commands: add, update, list ([#67](https://github.com/schpet/linear-cli/pull/67); thanks [@tallesborges](https://github.com/tallesborges))
+- add `--branch` option to issue start command ([#70](https://github.com/schpet/linear-cli/pull/70); thanks [@tallesborges](https://github.com/tallesborges))
+
+## [1.2.1] - 2025-11-10
+
+### Fixed
+
+- fix jj empty change detection to properly identify changes without descriptions
+
+## [1.2.0] - 2025-10-21
+
+### Added
+
+- support jj-vcs
+
+### Changed
+
+- removed uneccessary double prompt around adding labels
+
+## [1.1.1] - 2025-09-02
+
+### Fixed
+
+- fixed tests breaking release
+
+## [1.1.0] - 2025-09-02
+
+### Added
+
+- add from-ref option to issue start command to start an issue from a different git branch or ref ([#54](https://github.com/schpet/linear-cli/pull/54); thanks [@pianohacker](https://github.com/pianohacker))
+
+### Fixed
+
+- omit empty comments section in markdown output instead of showing 'no comments found'
+
+## [1.0.1] - 2025-08-26
+
+### Fixed
+
+- pager leaves content visible after quitting
+- make issue label matching case-insensitive
+
+### Changed
+
+- issue start command now has searchable prompt with type-ahead filtering
+- improve choices for assignment on issue create
+
+## [1.0.0] - 2025-08-20
+
+### Fixed
+
+- state column is now dynamically sized with max 20 chars and auto-truncation
+- correctly align issue list columns
+
+### Removed
+
+- linear issue <id> is removed, must use linear issue view <id>. linear issue now prints help text
+- remove support for deriving team ids from directory name
+- deprecated 'linear issue open' and 'linear issue print' commands - use 'linear issue view --app' and 'linear issue view' instead
+- removed team open command (use linear issue list -a)
+
+### Changed
+
+- more consistent rendering of priority
+- labels column width now dynamically sized based on actual label content
+- state flag on issue list can now be repeated to filter by multiple states
+- team members command now shows initials, timezone, and other details with --verbose flag
+- organized code into multiple files so it's less of a nightmare to work on
+- linear issue list now sorts by workflow state first
+- issue pr create no longer opens browser by default, added --web flag
+- removed 'about' prefix from relative timestamps
+
+### Added
+
+- `issue delete` command to delete issues by id
+- `team members` command to list team members
+- add --assignee flag on `issue list` allowing you to list issues assigned to a user
+- add -U, --unassigned flag to list only unassigned issues
+- add -A, --all-assignees flag to list issues for all assignees
+- allow specifying a --parent on linear issue create
+- add -A and -U flags to issue start command for filtering assignees
+- add --all-states flag to issue list command to show issues from all states
+- add --confirm flag to issue delete command to skip confirmation prompt
+- support --team flag in issue list command
+- show comments by default in linear issue view, use --no-comments to disable
+- project list command to display projects in a table format
+- project view command to show detailed project information
+- team list command to display teams in a table format
+- automatic paging for issue view command with --no-pager flag and pager
+- pager support for issue list command with --no-pager option
+- allow integer-only issue ids when team is configured
+- sub-issues now inherit parent project automatically
+- team create command with flags and interactive mode
+
+## [0.6.4] - 2025-08-12
+
+### Removed
+
+- remove unused label lookup functions replaced by team-aware versions
+
+## [0.6.3] - 2025-08-12
+
+### Changed
+
+- remove delay before title prompt in interactive create mode
+
+## [0.6.2] - 2025-08-12
+
+### Changed
+
+- ask for team selection before issue title in interactive create mode
+
+### Fixed
+
+- filter issue labels by team to prevent 'label not associated with team' errors
+
+## [0.6.1] - 2025-08-12
+
+### Changed
+
+- improved UX around selecting a team
+
+## [0.6.0] - 2025-08-12
+
+### Security
+
+- made deno permissions more specific
+
+### Added
+
+- test for JSON and HTML error response formatting
+- added `linear issue create` for creating issues with flags ([#30](https://github.com/schpet/linear-cli/pull/30); thanks [@maparent](https://github.com/maparent))
+- added `linear issue create` interactive issue creation
+
+### Changed
+
+- improve error messages when the graphql response has an error
+
+### Fixed
+
+- allow longer team ids
+
+## [0.5.7] - 2025-05-22
+
+### Fixed
+
+- use older version of cargo dist (v0.28.3)
+
+## [0.5.6] - 2025-05-22
+
+### Fixed
+
+- use older version of cargo dist (v0.28.3)
+
+## [0.5.5] - 2025-05-21
+
+### Fixed
+
+- use astro-sh fork of cargo-dist
+
+## [0.5.3] - 2025-05-20
+
+### Fixed
+
+- use a supported ubuntu version for builds
+
+## [0.5.2] - 2025-05-20
+
+### Fixed
+
+- better errors are printed when the api is down
+- support team ids with numbers in them
+
+## [0.5.1] - 2025-02-19
+
+### Fixed
+
+- Update terminal width calculation to include spacing for Estimate column
+
+## [0.5.0] - 2025-02-19
+
+### Changed
+
+- Include an estimate column on the table output
+
+### Added
+
+- running `linear issue start` without any id parameters will list out unstarted issues and let you select one
+
+## [0.4.1]
+
+### Changed
+
+- fixed api key links
+- config includes a comment pointing at the repo
+
+## [0.4.0]
+
+### Added
+
+- linear issue view to print the issue, with --web and --app flags to open them instead, similar to gh's view commands
+
+### changed
+
+- improved output of linear issue start to use the actual workflow name
+- deprecated commands (all will be removed in a future version):
+  - `linear team` (replaced by `linear issue list --app`)
+  - `linear issue open` (replaced by `linear issue view --app`)
+  - `linear issue print` (replaced by `linear issue view`)
+
+## [0.3.2]
+
+### Fixed
+
+- use first 'started' state when starting an issue
+
+## [0.3.1]
+
+### fixed
+
+- added necessary file for jsr publish
+
+## [0.3.0]
+
+### Added
+
+- support for .env files
+- support for a toml based configuration file
+- `linear config` command to generate a config file
+- `linear issue start` command to start an issue
+
+## [0.2.1]
+
+### Fixed
+
+- renamed directories to fix the release builds
+
+## [0.2.0]
+
+### Added
+
+- `linear issue list` command
+
+## [0.1.0]
+
+### added
+
+- adds a -t, --title flag to the `issue pr` command, allowing you to provide a PR title that is different than linear's issue title
+- allows linear issue identifiers to be passed in as arguments to the issue commands as an alternative to parsing the branch name, e.g. `linear issue show ABC-123`
+
+[Unreleased]: https://github.com/kyaukyuai/linear-cli/compare/v2.7.1...HEAD
+[2.7.1]: https://github.com/kyaukyuai/linear-cli/compare/v2.7.0...v2.7.1
+[2.7.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.6.0...v2.7.0
+[2.6.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.5.0...v2.6.0
+[2.5.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.4.1...v2.5.0
+[2.4.1]: https://github.com/kyaukyuai/linear-cli/compare/v2.4.0...v2.4.1
+[2.4.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.2.1...v2.3.0
+[2.2.1]: https://github.com/kyaukyuai/linear-cli/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/kyaukyuai/linear-cli/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/kyaukyuai/linear-cli/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/kyaukyuai/linear-cli/compare/v1.11.1...v2.0.0
+[1.11.1]: https://github.com/schpet/linear-cli/compare/v1.11.0...v1.11.1
+[1.11.0]: https://github.com/schpet/linear-cli/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/schpet/linear-cli/compare/v1.9.1...v1.10.0
+[1.9.1]: https://github.com/schpet/linear-cli/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/schpet/linear-cli/compare/v1.8.1...v1.9.0
+[1.8.1]: https://github.com/schpet/linear-cli/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/schpet/linear-cli/compare/v1.7.0...v1.8.0
+[1.7.0]: https://github.com/schpet/linear-cli/compare/v1.6.0...v1.7.0
+[1.6.0]: https://github.com/schpet/linear-cli/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/schpet/linear-cli/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/schpet/linear-cli/compare/v1.3.1...v1.4.0
+[1.3.1]: https://github.com/schpet/linear-cli/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/schpet/linear-cli/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/schpet/linear-cli/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/schpet/linear-cli/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/schpet/linear-cli/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/schpet/linear-cli/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/schpet/linear-cli/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/schpet/linear-cli/compare/v0.6.4...v1.0.0
+[0.6.4]: https://github.com/schpet/linear-cli/compare/v0.6.3...v0.6.4
+[0.6.3]: https://github.com/schpet/linear-cli/compare/v0.6.2...v0.6.3
+[0.6.2]: https://github.com/schpet/linear-cli/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/schpet/linear-cli/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/schpet/linear-cli/compare/v0.5.7...v0.6.0
+[0.5.7]: https://github.com/schpet/linear-cli/compare/v0.5.6...v0.5.7
+[0.5.6]: https://github.com/schpet/linear-cli/compare/v0.5.5...v0.5.6
+[0.5.5]: https://github.com/schpet/linear-cli/compare/v0.5.3...v0.5.5
+[0.5.3]: https://github.com/schpet/linear-cli/compare/v0.5.2...v0.5.3
+[0.5.2]: https://github.com/schpet/linear-cli/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/schpet/linear-cli/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/schpet/linear-cli/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/schpet/linear-cli/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/schpet/linear-cli/compare/v0.3.2...v0.4.0
+[0.3.2]: https://github.com/schpet/linear-cli/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/schpet/linear-cli/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/schpet/linear-cli/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/schpet/linear-cli/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/schpet/linear-cli/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/schpet/linear-cli/releases/tag/v0.1.0

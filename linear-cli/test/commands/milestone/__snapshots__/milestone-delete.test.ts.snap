@@ -1,0 +1,53 @@
+export const snapshot = {};
+
+snapshot[`Milestone Delete Command - Help Text 1`] = `
+stdout:
+"
+Usage: delete <id>
+
+Description:
+
+  Delete a project milestone
+
+Options:
+
+  -h, --help         - Show this help.                                      
+  -i, --interactive  - Enable interactive confirmation                      
+  -y, --yes          - Skip confirmation prompt                             
+  -f, --force        - Deprecated alias for --yes                           
+  --dry-run          - Preview the deletion without mutating the milestone  
+
+Examples:
+
+  Preview deleting a milestone         linear milestone delete milestone-123 --dry-run
+  Delete a milestone without prompting linear milestone delete milestone-123 --yes    
+
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone Delete Command - With Yes Flag 1`] = `
+stdout:
+"✓ Deleted milestone milestone-123
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone Delete Command - Legacy Force Alias 1`] = `
+stdout:
+"✓ Deleted milestone milestone-123
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone Delete Command - Dry Run 1`] = `
+stdout:
+"Dry run: Would delete milestone milestone-preview
+Milestone: milestone-preview
+"
+stderr:
+""
+`;

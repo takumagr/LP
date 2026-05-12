@@ -1,0 +1,125 @@
+export const snapshot = {};
+
+snapshot[`Cycle Current Command - Help Text 1`] = `
+stdout:
+"
+Usage: current
+
+Description:
+
+  Show the current active cycle for a team
+
+Options:
+
+  -h, --help          - Show this help.                      
+  --team      <team>  - Team key (defaults to current team)  
+  -j, --json          - Force machine-readable JSON output   
+  --text              - Output human-readable text           
+
+Examples:
+
+  Show the current cycle as JSON         linear cycle current --team ENG       
+  Show the current cycle in the terminal linear cycle current --team ENG --text
+
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle Current Command - Shows Active Cycle 1`] = `
+stdout:
+"# Sprint 42
+
+Number: 42
+Start: 1/13/2026
+End: 1/27/2026
+Progress: 35%
+
+## Description
+
+Working on authentication improvements
+
+
+## Issues (2)
+
+- ENG-123: Fix login bug [In Progress]
+- ENG-124: Add SSO support [Todo]
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle Current Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "cycle-1",
+  "number": 42,
+  "name": "Sprint 42",
+  "description": "Working on authentication improvements",
+  "startsAt": "2026-01-13T00:00:00Z",
+  "endsAt": "2026-01-27T00:00:00Z",
+  "completedAt": null,
+  "status": "active",
+  "isActive": true,
+  "isFuture": false,
+  "isPast": false,
+  "progress": 0.35,
+  "createdAt": "2026-01-10T00:00:00Z",
+  "updatedAt": "2026-01-20T00:00:00Z",
+  "team": {
+    "id": "team-1",
+    "key": "ENG",
+    "name": "Engineering"
+  },
+  "issueSummary": {
+    "total": 2,
+    "completed": 0,
+    "started": 1,
+    "unstarted": 1,
+    "backlog": 0,
+    "triage": 0,
+    "canceled": 0
+  },
+  "issues": [
+    {
+      "id": "issue-1",
+      "identifier": "ENG-123",
+      "title": "Fix login bug",
+      "state": {
+        "name": "In Progress",
+        "type": "started",
+        "color": "#f59e0b"
+      }
+    },
+    {
+      "id": "issue-2",
+      "identifier": "ENG-124",
+      "title": "Add SSO support",
+      "state": {
+        "name": "Todo",
+        "type": "unstarted",
+        "color": "#94a3b8"
+      }
+    }
+  ]
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Cycle Current Command - No Active Cycle 1`] = `
+stdout:
+"No active cycle found for team ENG
+"
+stderr:
+""
+`;
+
+snapshot[`Cycle Current Command - JSON Output No Active Cycle 1`] = `
+stdout:
+"null
+"
+stderr:
+""
+`;

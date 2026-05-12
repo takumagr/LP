@@ -1,0 +1,29 @@
+export const snapshot = {};
+
+snapshot[`Cycle Add Command - Help Text 1`] = `
+stdout:
+'
+Usage: add <issueId>
+
+Description:
+
+  Add an issue to a cycle
+
+Options:
+
+  -h, --help           - Show this help.                                                     
+  --team      <team>   - Team key (defaults to current team)                                 
+  --cycle     <cycle>  - Cycle name or number (defaults to active cycle)  (Default: \\x1b[32m"active"\\x1b[39m)
+
+'
+stderr:
+""
+`;
+
+snapshot[`Cycle Add Command - Add Issue to Active Cycle 1`] = `
+stdout:
+"✓ Added ENG-123 to Sprint 42
+"
+stderr:
+""
+`;

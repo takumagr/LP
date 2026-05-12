@@ -1,0 +1,55 @@
+import { Command } from "@cliffy/command"
+import { assignCommand } from "./issue-assign.ts"
+import { attachCommand } from "./issue-attach.ts"
+import { commentCommand } from "./issue-comment.ts"
+import { createCommand } from "./issue-create.ts"
+import { createBatchCommand } from "./issue-create-batch.ts"
+import { deleteCommand } from "./issue-delete.ts"
+import { describeCommand } from "./issue-describe.ts"
+import { childrenCommand } from "./issue-children.ts"
+import { commitsCommand } from "./issue-commits.ts"
+import { estimateCommand } from "./issue-estimate.ts"
+import { idCommand } from "./issue-id.ts"
+import { labelCommand } from "./issue-label.ts"
+import { listCommand } from "./issue-list.ts"
+import { moveCommand } from "./issue-move.ts"
+import { parentCommand } from "./issue-parent.ts"
+import { priorityCommand } from "./issue-priority.ts"
+import { pullRequestCommand } from "./issue-pull-request.ts"
+import { relationCommand } from "./issue-relation.ts"
+import { searchCommand } from "./issue-search.ts"
+import { startCommand } from "./issue-start.ts"
+import { titleCommand } from "./issue-title.ts"
+import { updateCommand } from "./issue-update.ts"
+import { urlCommand } from "./issue-url.ts"
+import { viewCommand } from "./issue-view.ts"
+
+export const issueCommand = new Command()
+  .description("Manage Linear issues")
+  .action(function () {
+    this.showHelp()
+  })
+  .command("id", idCommand)
+  .command("list", listCommand)
+  .command("search", searchCommand)
+  .command("title", titleCommand)
+  .command("start", startCommand)
+  .command("view", viewCommand)
+  .command("url", urlCommand)
+  .command("describe", describeCommand)
+  .command("commits", commitsCommand)
+  .command("pull-request", pullRequestCommand)
+  .command("delete", deleteCommand)
+  .command("create", createCommand)
+  .command("create-batch", createBatchCommand)
+  .command("update", updateCommand)
+  .command("move", moveCommand)
+  .command("assign", assignCommand)
+  .command("priority", priorityCommand)
+  .command("estimate", estimateCommand)
+  .command("parent", parentCommand)
+  .command("children", childrenCommand)
+  .command("label", labelCommand)
+  .command("comment", commentCommand)
+  .command("attach", attachCommand)
+  .command("relation", relationCommand)

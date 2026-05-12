@@ -1,0 +1,167 @@
+export const snapshot = {};
+
+snapshot[`Webhook Update Command - Help Text 1`] = `
+stdout:
+'
+Usage: update <webhookId>
+
+Description:
+
+  Update a webhook
+
+Options:
+
+  -h, --help                             - Show this help.                                  
+  -u, --url             <url>            - New webhook URL                                  
+  -r, --resource-types  <resourceTypes>  - New comma-separated resource types               
+  -l, --label           <label>          - New webhook label                                
+  --secret              <secret>         - New secret used to sign payloads                 
+  --enabled                              - Enable the webhook                               
+  --disabled                             - Disable the webhook                              
+  -j, --json                             - Output as JSON                                   
+  --dry-run                              - Preview the update without mutating the webhook  
+
+Examples:
+
+  Preview a webhook update  linear webhook update webhook_123 --label "Primary webhook" --resource-types Issue,Comment --dry-run
+  Disable a webhook as JSON linear webhook update webhook_123 --disabled --json                                                 
+
+'
+stderr:
+""
+`;
+
+snapshot[`Webhook Update Command - No Changes 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to update webhook: At least one update option is required
+  Use --label, --url, --resource-types, --secret, --enabled, or --disabled.
+"
+`;
+
+snapshot[`Webhook Update Command - Updates Webhook 1`] = `
+stdout:
+"✓ Updated webhook: Issue delivery
+  ID: webhook-1
+  URL: https://example.com/hooks/issues
+  Scope: Engineering (ENG)
+  Resources: Issue, Comment
+"
+stderr:
+""
+`;
+
+snapshot[`Webhook Update Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "webhook-1",
+  "label": "Issue events",
+  "url": "https://example.com/hooks/issues",
+  "enabled": true,
+  "archivedAt": null,
+  "allPublicTeams": false,
+  "resourceTypes": [
+    "Issue"
+  ],
+  "createdAt": "2026-03-13T10:00:00Z",
+  "updatedAt": "2026-03-13T10:05:00Z",
+  "team": {
+    "id": "team-1",
+    "key": "ENG",
+    "name": "Engineering"
+  },
+  "creator": {
+    "id": "user-1",
+    "name": "jdoe",
+    "displayName": "John Doe"
+  },
+  "receipt": {
+    "operationId": "webhook.update",
+    "resource": "webhook",
+    "action": "update",
+    "resolvedRefs": {
+      "webhookId": "webhook-1",
+      "webhookUrl": "https://example.com/hooks/issues"
+    },
+    "appliedChanges": [
+      "resourceTypes"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "webhook.update",
+    "resource": "webhook",
+    "action": "update",
+    "summary": "Updated webhook webhook-1",
+    "refs": {
+      "webhookId": "webhook-1",
+      "webhookUrl": "https://example.com/hooks/issues"
+    },
+    "changes": [
+      "resourceTypes"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Webhook Update Command - Dry Run JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would update webhook webhook-1",
+  "data": {
+    "command": "webhook.update",
+    "operation": "update",
+    "destructive": false,
+    "target": {
+      "resource": "webhook",
+      "id": "webhook-1"
+    },
+    "changes": {
+      "url": null,
+      "label": "Preview webhook",
+      "resourceTypes": [],
+      "enabled": null,
+      "secretProvided": false
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "webhook.update",
+    "resource": "webhook",
+    "action": "update",
+    "summary": "Would update webhook webhook-1",
+    "refs": {
+      "id": "webhook-1"
+    },
+    "changes": [
+      "url",
+      "label",
+      "resourceTypes",
+      "enabled",
+      "secretProvided"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;

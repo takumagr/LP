@@ -1,0 +1,81 @@
+export const snapshot = {};
+
+snapshot[`Issue Move Command - Help Text 1`] = `
+stdout:
+"
+Usage: move <issueId> <state>
+
+Description:
+
+  Move an issue to a different workflow state
+
+Options:
+
+  -h, --help  - Show this help.  
+  -j, --json  - Output as JSON   
+
+Examples:
+
+  Move to In Progress linear issue move ENG-123 'In Progress'
+  Move to Done        linear issue move ENG-123 Done         
+  Move by state type  linear issue move ENG-123 completed    
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Move Command - Move to In Progress 1`] = `
+stdout:
+"✓ Moved ENG-123 to In Progress
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Move Command - JSON Output 1`] = `
+stdout:
+'{
+  "identifier": "ENG-123",
+  "state": "In Progress",
+  "receipt": {
+    "operationId": "issue.move",
+    "resource": "issue",
+    "action": "update",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "teamKey": "ENG",
+      "state": "In Progress"
+    },
+    "appliedChanges": [
+      "state"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.move",
+    "resource": "issue",
+    "action": "update",
+    "summary": "Moved ENG-123 to In Progress",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "teamKey": "ENG",
+      "state": "In Progress"
+    },
+    "changes": [
+      "state"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;

@@ -1,0 +1,97 @@
+export const snapshot = {};
+
+snapshot[`Issue Assign Command - Help Text 1`] = `
+stdout:
+"
+Usage: assign <issueId> [assignee]
+
+Description:
+
+  Assign an issue to a user
+
+Options:
+
+  -h, --help  - Show this help.              
+  -j, --json  - Output as JSON               
+  --unassign  - Remove the current assignee  
+
+Examples:
+
+  Assign to self linear issue assign ENG-123 self      
+  Assign to user linear issue assign ENG-123 john      
+  Unassign       linear issue assign ENG-123 --unassign
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Assign Command - Missing Assignee 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to assign issue: Please provide an assignee or use --unassign
+  Use 'self', '@me', a username, or email address
+"
+`;
+
+snapshot[`Issue Assign Command - Assign to Self 1`] = `
+stdout:
+"✓ Assigned ENG-123 to John
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Assign Command - JSON Output 1`] = `
+stdout:
+'{
+  "identifier": "ENG-123",
+  "assignee": "John",
+  "receipt": {
+    "operationId": "issue.assign",
+    "resource": "issue",
+    "action": "update",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "assignee": "John"
+    },
+    "appliedChanges": [
+      "assignee"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.assign",
+    "resource": "issue",
+    "action": "update",
+    "summary": "Updated assignee for ENG-123",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "assignee": "John"
+    },
+    "changes": [
+      "assignee"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Assign Command - Unassign 1`] = `
+stdout:
+"✓ Unassigned ENG-123
+"
+stderr:
+""
+`;

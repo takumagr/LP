@@ -1,0 +1,166 @@
+export const snapshot = {};
+
+snapshot[`Webhook Create Command - Help Text 1`] = `
+stdout:
+"
+Usage: create
+
+Description:
+
+  Create a webhook
+
+Options:
+
+  -h, --help                             - Show this help.                                                     
+  -u, --url             <url>            - Webhook URL (required)                                              
+  -r, --resource-types  <resourceTypes>  - Comma-separated resource types (e.g. Issue,Comment)                 
+  -l, --label           <label>          - Webhook label                                                       
+  -t, --team            <teamKey>        - Team key (defaults to current team)                                 
+  --all-public-teams                     - Enable the webhook for all public teams instead of a specific team  
+  --secret              <secret>         - Secret used to sign webhook payloads                                
+  --disabled                             - Create the webhook disabled                                         
+  -j, --json                             - Output as JSON                                                      
+  --dry-run                              - Preview the webhook without creating it                             
+
+Examples:
+
+  Preview creating a team webhook            linear webhook create --url https://example.com/hooks/linear --resource-types Issue,Comment --team ENG --dry-run
+  Create an all-public-teams webhook as JSON linear webhook create --url https://example.com/hooks/linear --resource-types Issue --all-public-teams --json   
+
+"
+stderr:
+""
+`;
+
+snapshot[`Webhook Create Command - Creates Team Webhook 1`] = `
+stdout:
+"✓ Created webhook: Issue events
+  ID: webhook-1
+  URL: https://example.com/hooks/issues
+  Scope: Engineering (ENG)
+  Resources: Issue, Comment
+"
+stderr:
+""
+`;
+
+snapshot[`Webhook Create Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "webhook-2",
+  "label": null,
+  "url": "https://example.com/hooks/public",
+  "enabled": true,
+  "archivedAt": null,
+  "allPublicTeams": true,
+  "resourceTypes": [
+    "Project"
+  ],
+  "createdAt": "2026-03-13T10:00:00Z",
+  "updatedAt": "2026-03-13T10:00:00Z",
+  "team": null,
+  "creator": {
+    "id": "user-1",
+    "name": "jdoe",
+    "displayName": "John Doe"
+  },
+  "receipt": {
+    "operationId": "webhook.create",
+    "resource": "webhook",
+    "action": "create",
+    "resolvedRefs": {
+      "webhookId": "webhook-2",
+      "webhookUrl": "https://example.com/hooks/public",
+      "teamKey": null
+    },
+    "appliedChanges": [
+      "url",
+      "enabled",
+      "resourceTypes",
+      "scope"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "webhook.create",
+    "resource": "webhook",
+    "action": "create",
+    "summary": "Created webhook webhook-2",
+    "refs": {
+      "webhookId": "webhook-2",
+      "webhookUrl": "https://example.com/hooks/public",
+      "teamKey": null
+    },
+    "changes": [
+      "url",
+      "enabled",
+      "resourceTypes",
+      "scope"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Webhook Create Command - Dry Run JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would create webhook for https://example.com/hooks/dry-run",
+  "data": {
+    "command": "webhook.create",
+    "operation": "create",
+    "destructive": false,
+    "target": {
+      "resource": "webhook",
+      "url": "https://example.com/hooks/dry-run"
+    },
+    "changes": {
+      "input": {
+        "url": "https://example.com/hooks/dry-run",
+        "label": null,
+        "enabled": true,
+        "allPublicTeams": true,
+        "resourceTypes": [
+          "Issue"
+        ],
+        "teamKey": null,
+        "teamId": null,
+        "secretProvided": false
+      }
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "webhook.create",
+    "resource": "webhook",
+    "action": "create",
+    "summary": "Would create webhook for https://example.com/hooks/dry-run",
+    "refs": {
+      "url": "https://example.com/hooks/dry-run"
+    },
+    "changes": [
+      "input"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;

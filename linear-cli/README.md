@@ -1,0 +1,713 @@
+# linear-cli
+
+`linear-cli` is an agent-native Linear runtime for Claude Code, Codex, and other automation that needs a stable command surface instead of screen scraping or ad-hoc GraphQL scripts. this fork of [`schpet/linear-cli`](https://github.com/schpet/linear-cli) keeps the git and [jj](https://www.jj-vcs.dev/) workflow ergonomics from upstream, then layers on stable JSON contracts, startup discovery, dry-run previews, operation receipts, and workflow-safe error semantics for agent-controlled execution.
+
+if you want an agent to read Linear state, resolve refs, preview a write, apply it, and return structured output without leaving the shell, this repo is designed for that path first. `main` now reflects the current `v3` runtime direction: core surfaces default to machine-readable output, startup flows are non-interactive, human-oriented terminal output is an explicit escape hatch, and source-adjacent intake can flow through normalized context envelopes instead of wrapper-specific glue code.
+
+```bash
+linear capabilities
+linear capabilities --compat v1
+linear resolve issue ENG-123
+linear resolve pack --issue ENG-123 --workflow-state started --label Bug
+linear issue update ENG-123 --state done --dry-run --json
+linear issue list
+linear issue view ENG-123
+linear issue create -t "Backfill webhook contract docs" --team ENG --dry-run --json
+linear issue update ENG-123 --state done --comment "Shipped in v2.10.0"
+linear issue create --team ENG --context-file slack-thread.json --dry-run --json
+linear issue update ENG-123 --context-file slack-thread.json --apply-triage --dry-run --json
+linear issue update ENG-123 --context-file slack-thread.json --autonomy-policy suggest-only --dry-run --json
+linear project view "Automation Contract v3"
+linear notification list
+```
+
+the core agent surfaces now default to machine-readable JSON. use `--text` when a human wants terminal-oriented output for ad-hoc inspection or debugging.
+
+## what the v3 runtime means
+
+the `v3` line is where `linear-cli` stops behaving like a mixed human/agent CLI and starts behaving like an agent-native control plane by default.
+
+- startup discovery defaults to the richer `linear capabilities` schema
+- startup-critical reads and representative writes default to machine-readable JSON
+- prompt fallbacks are no longer implicit; use `--profile human-debug --interactive` when a maintainer explicitly wants them
+- `agent-safe` is the default execution profile
+- preview/apply/result flows share `operation`, `receipt`, and structured `error.details`
+- source-adjacent intake can use `--context-file`, `--apply-triage`, `--autonomy-policy`, and `receipt.sourceProvenance` as first-class runtime surfaces
+
+if you are integrating `linear-cli` into an agent runtime, assume the defaults above and treat `--text` plus `--profile human-debug` as secondary debugging tools.
+
+## agent-native runtime
+
+Treat `linear-cli` as a shell-native control plane for agents:
+
+- startup discovery comes from `linear capabilities`
+- startup-critical reads and core write surfaces default to machine-readable JSON
+- refs can be normalized with `linear resolve ...`, including multi-entity `linear resolve pack`
+- write previews use `--dry-run --json`
+- write results expose `operation`, `receipt`, and structured `error.details`
+- `linear capabilities` classifies commands as `stable`, `partial`, or `escape_hatch`
+- source-adjacent intake can carry deterministic context, triage, autonomy policy, and provenance through `--context-file`
+- human/debug behavior is explicit with `--text` and `--profile human-debug --interactive`
+
+The practical default loop is:
+
+1. `linear capabilities`
+2. `linear resolve ...`
+3. default-JSON reads such as `linear issue view ENG-123`
+4. `--dry-run --json` previews for writes
+5. apply the mutation and inspect `operation`, `receipt`, and `error.details`
+
+## for agents
+
+If an agent only reads one page, it should be this README plus the two contract docs below.
+
+- start with `linear capabilities` for the default schema-like discovery shape; use `linear capabilities --compat v1` only when an older consumer still expects the legacy startup shape
+- use the default runtime for predictable non-interactive agent execution; `--profile human-debug` is the explicit escape hatch for pager and prompt-driven debugging
+- resolve ambiguous issue/team/state/user/label refs with `linear resolve ...` before previewing or applying writes; use `linear resolve pack` when a workflow needs one shared issue/team/user/project context object
+- prefer stable read surfaces such as `issue`, `project`, `cycle`, `milestone`, `document`, `webhook`, `notification`, `team`, `user`, `workflow-state`, `label`, `initiative`, and update feeds; those agent-first entrypoints now default to machine-readable JSON
+- preview writes with `--dry-run --json` before mutating Linear
+- apply writes on default-JSON surfaces without `--text`, then inspect exit codes and `error.details` instead of parsing terminal text
+- use `--profile human-debug --interactive` for human/debug prompt flows; missing required inputs now fail fast by default
+- use stdin or file flags for Markdown-heavy descriptions and comments instead of long inline shell strings
+- use `--context-file` when upstream tooling can hand `linear-cli` a normalized source-context envelope for create/update flows
+- use `--apply-triage` with `--context-file` when the envelope already carries deterministic team/state/label hints
+- use `--autonomy-policy suggest-only | preview-required | apply-allowed` to decide whether source-adjacent intake may only suggest, must preview, or may apply
+- inspect `receipt.sourceProvenance` after apply when the source-adjacent intake path needs a machine-readable audit trail back to Slack, tickets, or other upstream context
+
+Recommended docs:
+
+- [Agent workflow guide](docs/agent-first.md)
+- [Automation contracts](docs/json-contracts.md)
+- [Agent-only v3 runtime guide](docs/agent-only-v3.md)
+- [v2 to v3 migration cookbook](docs/v2-to-v3-migration-cookbook.md)
+- [stdin and pipeline policy](docs/stdin-policy.md)
+
+## migration from 2.x
+
+If a downstream consumer still assumes the older mixed human/agent behavior, migrate in this order:
+
+1. stop parsing styled terminal output
+2. use `linear capabilities` for startup discovery and pin `--compat v1` only where a legacy consumer still needs it
+3. treat `operation`, `receipt`, and `error.details` as the canonical execution surface
+4. add `--text` anywhere a maintainer still wants terminal-oriented output
+5. add `--profile human-debug --interactive` anywhere a maintainer still wants prompts or pager-oriented debugging
+
+The detailed release and migration guide lives in [docs/agent-only-v3.md](docs/agent-only-v3.md). For copy-pasteable before/after fixes, use [docs/v2-to-v3-migration-cookbook.md](docs/v2-to-v3-migration-cookbook.md).
+
+## human-debug demos
+
+These demos are intentionally secondary. they show the explicit human/debug escape hatch, not the primary runtime path for agents.
+
+<details>
+<summary><code>linear issue create</code></summary>
+
+<img width="600" src="docs/cast-issue-create.svg?1" alt="screencast showing the linear issue create command, interactively adding issue details">
+
+</details>
+
+<details>
+<summary><code>linear issue start</code></summary>
+
+<img width="600" src="docs/cast-issue-start.svg?1" alt="screencast showing the linear issue start command, interactively choosing an issue to start">
+
+</details>
+
+## install
+
+for agents and scripts, prefer a pinned install in the repo or runtime you control.
+
+### install as a skill
+
+If you want to expose `linear-cli` as a reusable skill on top of an existing agent runtime, install it from the repo root and select the public skill explicitly:
+
+```bash
+npx skills add https://github.com/kyaukyuai/linear-cli --skill linear-cli
+```
+
+This is the most compatible form for `skills` and `skills.sh`.
+
+If you want to point directly at the skill directory instead, this also works:
+
+```bash
+npx skills add https://github.com/kyaukyuai/linear-cli/tree/main/skills/linear-cli
+```
+
+Once installed, agents can load the skill and then call the local `linear` binary using the agent-first guidance in [skills/linear-cli/SKILL.md](skills/linear-cli/SKILL.md).
+
+### npm / bun / pnpm
+
+install as a dependency to pin a version in your project:
+
+```bash
+npm install -D @kyaukyuai/linear-cli
+# or
+bun add -D @kyaukyuai/linear-cli
+# or
+pnpm add -D @kyaukyuai/linear-cli
+```
+
+then run via your package manager:
+
+```bash
+npx linear issue list
+bunx linear issue list
+```
+
+> **note:** this package ships pre-built binaries
+
+package on npm: [@kyaukyuai/linear-cli](https://www.npmjs.com/package/@kyaukyuai/linear-cli)
+
+skills directory on GitHub: [skills/linear-cli](https://github.com/kyaukyuai/linear-cli/tree/main/skills/linear-cli)
+
+### deno via jsr
+
+```bash
+deno install -A --reload -f -g -n linear jsr:@kyaukyuai/linear-cli
+```
+
+### homebrew
+
+```bash
+brew install kyaukyuai/tap/linear
+```
+
+### binaries
+
+https://github.com/kyaukyuai/linear-cli/releases/latest
+
+### local dev
+
+```bash
+git clone https://github.com/kyaukyuai/linear-cli
+cd linear-cli
+deno task install
+```
+
+## agent-facing capabilities
+
+compared to upstream, this fork adds and maintains capabilities aimed at automation-heavy workflows:
+
+- stable JSON contracts for the automation tier, with machine-readable failures for parser, validation, and runtime errors
+- a self-describing `linear capabilities` surface with richer schema and output metadata by default and an explicit `--compat v1` fallback for legacy consumers
+- `--dry-run` previews for high-value write commands, including `issue start`, issue writes, and non-issue writes
+- additive operation receipts on high-value JSON write success paths
+- source-adjacent intake receipts now carry machine-readable source provenance when `--context-file` is used
+- a shared top-level `operation` contract on representative preview/apply JSON write paths
+- stdin and pipeline support for high-value write paths
+- normalized source-context intake for issue create/update through `--context-file`
+- deterministic triage preview/apply for source-adjacent intake through `--apply-triage`
+- explicit source-intake autonomy policies through `--autonomy-policy suggest-only|preview-required|apply-allowed`
+- retry-safe semantics for relation add/delete, project label add/remove, notification read/archive, and structured partial-failure details
+- canonical `--yes` confirmation bypass handling for destructive commands
+- agent-focused help examples across automation-tier and major write commands
+- cycle workflows beyond listing and viewing, including `cycle current`, `cycle next`, `cycle create`, `cycle add`, and `cycle remove`
+- issue workflow commands for `search`, `assign`, `move`, `priority`, `estimate`, `label add/remove`, comment delete, relations, and attachments
+- inbox notification commands for `list`, `count`, `read`, and `archive`
+- webhook commands for `list`, `view`, `create`, `update`, and `delete`
+- workflow state commands for `list` and `view`
+- user commands for `list` and `view`
+- project label commands for `list` and `project label add/remove`
+- initiative commands for `list` and `view`, plus project update and initiative update feeds
+- JSON output for scripting across issue, cycle, project, milestone, initiative, document, webhook, notification, and update-feed commands
+- workspace-aware auth management with keyring migration and default workspace support
+- generated AI-agent skill docs, Claude plugin metadata, npm publishing, and Homebrew tap release plumbing
+
+## docs map
+
+Use the docs in this order if you are building an agent integration:
+
+1. [docs/agent-first.md](docs/agent-first.md) for the recommended discover/read/preview/apply/recover loop
+2. [docs/json-contracts.md](docs/json-contracts.md) for stable JSON payloads, exit codes, timeout semantics, and dry-run envelopes
+3. [docs/agent-only-v3.md](docs/agent-only-v3.md) for the current `v3` runtime contract and downstream migration checklist
+4. [docs/v2-to-v3-migration-cookbook.md](docs/v2-to-v3-migration-cookbook.md) for consumer-facing before/after upgrade examples
+5. [docs/stdin-policy.md](docs/stdin-policy.md) for pipeline and file-input conventions
+6. [`linear capabilities`](#automation-contract) for machine-readable command metadata at runtime
+
+## automation contract
+
+for bot and org-wide automation use cases, `linear-cli` defines a stable machine-readable contract for a focused automation tier. that contract is the primary runtime surface. `--text` and prompt flows are secondary human/debug escape hatches.
+
+to discover the curated agent-facing command surface programmatically, use `linear capabilities`. the default shape now returns the richer v2 schema metadata for agent-native startup. when an older consumer still expects the trimmed legacy shape, pin it explicitly with `linear capabilities --compat v1`.
+
+the default capabilities shape now carries parser-oriented metadata for representative commands, including repeatable/variadic inputs, deprecated aliases, default values, composition constraints, and concrete resolution sources such as env vars, config keys, git branch context, jj trailers, and implicit stdin fallbacks.
+
+`agent-safe` is now the default execution profile for agent-controlled runs. it disables pager-by-default behavior, extends the built-in write timeout to `45000ms` unless `--timeout-ms` or `LINEAR_WRITE_TIMEOUT_MS` is set, and keeps destructive confirmation bypass explicit with `--yes`. use `--profile human-debug` when a maintainer explicitly wants prompt-driven or pager-oriented debugging behavior.
+
+non-goals:
+
+- it does not force `--json` on commands outside the agent-native default-JSON surface
+- it does not auto-confirm destructive actions
+- it does not replace explicit human/debug prompt flows; callers should pass flags, stdin, file inputs, or opt into `--profile human-debug --interactive`
+
+runtime surface classes:
+
+- `stable`: startup-contract or automation-contract surface. safe for primary agent runtime paths.
+- `partial`: agent-usable surface with shared dry-run or machine-readable traits, but not a full stable contract. pin explicit flags and avoid assuming long-term shape stability.
+- `escape_hatch`: intentionally raw or human/debug-only path, such as `linear api`, `--text`, or `--profile human-debug --interactive`.
+
+- v1 in scope: `issue list/view/create/update --json`, `issue relation add/delete/list --json`, `issue comment add --json`, `team members --json`, `issue parent/children/create-batch --json`
+- v2 additions: `project list/view --json`, `cycle list/view/current/next --json`, `milestone list/view --json`
+- v3 additions: `document list/view --json`, `webhook list/view --json`, `notification list/count --json`
+- v4 additions: `team list/view --json`, `user list/view --json`, `workflow-state list/view --json`, `label list --json`, `project-label list --json`
+- v5 additions: `initiative list/view --json`, `project-update list --json`, `initiative-update list --json`
+- v6 additions: `resolve issue/team/workflow-state/user/label --json`
+- v7 additions: `issue assign/estimate/move/priority --json`, `notification read/archive --json`, `project create --json`, `project label add/remove --json`, `webhook create/update/delete --json`
+- v8 additions: `resolve pack --json`
+- partial surfaces today include high-value dry-run adopters that do not yet expose a stable apply contract, such as `document create/update/delete`, `milestone create/update/delete`, `project update/delete`, and `issue start`
+- escape-hatch only surfaces include non-JSON terminal flows, `linear api`, and explicit human/debug output paths
+
+the contract fixes top-level success payload shapes and requires machine-readable failure payloads for the automation tier. see [docs/json-contracts.md](docs/json-contracts.md) for the full contract, compatibility rules, and example payloads. that guarantee also covers parser and argument validation failures when the command is in machine-readable mode, whether that is the default or was requested explicitly with `--json`.
+
+for automation consumers, auth and authorization failures now use exit code `4`, free-plan or workspace-plan limit failures use exit code `5`, and client-side write confirmation timeouts use exit code `6`. other contract failures remain non-zero and currently use `1`. rate-limited responses remain on exit code `1`, but now include retry guidance and, when available, `error.details.rateLimit` metadata.
+
+high-value write commands honor `LINEAR_WRITE_TIMEOUT_MS` and accept `--timeout-ms` for per-command overrides. timeout failures return a distinct machine-readable failure mode, `timeout_error`, with `error.details.failureMode = "timeout_waiting_for_confirmation"`. when reconciliation runs after the timeout, `error.details.outcome` still captures the high-level result, while `error.details.appliedState` and `error.details.callerGuidance` tell callers whether the write looks applied, partially applied, not applied, or still uncertain and whether they should retry, resume, or read first. notification `read` and `archive` now use the same timeout contract as issue write commands.
+
+the same document also defines the shared preview contract for future `--dry-run` write commands. those commands are not all implemented yet, but the contract now fixes the expected `stdout`, `exit code`, and `--json --dry-run` envelope shape ahead of rollout.
+
+representative preview/apply JSON write paths may add a top-level `operation` field so agents can diff preview intent against apply results with one parser path. successful high-value JSON writes may also add a top-level `receipt` field. this gives agents a shared place to inspect `operationId`, `resolvedRefs`, `appliedChanges`, `noOp`, and `nextSafeAction` without inferring those traits from command-specific payload fields. current coverage includes issue create/update/comment/relation, issue batch creation, issue assignment/estimate/move/priority, project create and label add/remove, webhook create/update/delete, and notification read/archive.
+
+destructive commands use `--yes` as the canonical confirmation-bypass flag. legacy `--force` and `--confirm` flags are still accepted where older workflows already depended on them.
+
+for retry behavior, prefer treating write commands in three buckets:
+
+- retry-safe set-style writes: `issue update` without `--comment`, plus relation add/delete
+- retry-safe no-op writes: `project label add/remove` and `notification read/archive`, which succeed without mutating when the target state is already satisfied
+- non-idempotent writes: `issue create`, `issue comment add`, and `issue update --comment`
+- resumable but non-idempotent batch writes: `issue create-batch`, which reports `error.details.createdIdentifiers` and `failedStep` on partial failure
+
+when a write command completes part of its work and then fails, `error.details` uses a shared partial-success shape with `failureStage`, `retryable`, and `partialSuccess`. for example, `issue update --comment --json` sets `error.details.partialSuccess.issueUpdated = true` and includes a standalone retry command for `issue comment add`.
+
+For stdin and pipeline behavior, see [docs/stdin-policy.md](docs/stdin-policy.md).
+
+## differences from upstream
+
+this fork is intentionally diverging from upstream in a few ways:
+
+- package and publishing identity use `kyaukyuai/linear-cli`, `@kyaukyuai/linear-cli`, and `kyaukyuai/tap/linear`
+- maintainer workflows are standardized around git-based release automation, even though the CLI itself still supports both git and jj at runtime
+- documentation and release assets are tailored for this fork's roadmap, including agent-facing docs and additional release infrastructure
+- changelog and README content track fork-specific features separately from upstream history
+
+## setup
+
+1. create an API key at [linear.app/settings/account/security](https://linear.app/settings/account/security)[^1]
+
+2. authenticate with the CLI:
+
+   ```sh
+   linear auth login --profile human-debug --interactive
+   ```
+
+3. configure your project:
+
+   ```sh
+   cd my-project-repo
+   linear config --profile human-debug --interactive
+   ```
+
+For unattended agent runtimes, prefer injected credentials and explicit config over prompt flows. see [docs/authentication.md](docs/authentication.md) for multi-workspace support and other authentication options.
+
+the CLI works with both git and jj version control systems:
+
+- **git**: works best when your branches include Linear issue IDs (e.g. `eng-123-my-feature`). use `linear issue start` or linear UI's 'copy git branch name' button and [related automations](https://linear.app/docs/account-preferences#git-related-automations).
+- **jj**: detects issues from `Linear-issue` trailers in your commit descriptions. use `linear issue start` to automatically add the trailer, or add it manually with `jj describe`, e.g. `jj describe "$(linear issue describe ABC-123)"`
+
+## commands
+
+### issue commands
+
+the current issue is determined by:
+
+- **git**: the issue id in the current branch name (e.g. `eng-123-my-feature`)
+- **jj**: the `Linear-issue` trailer in the current or ancestor commits
+
+note that [Linear's GitHub integration](https://linear.app/docs/github#branch-format) will suggest git branch names.
+
+```bash
+linear issue view      # emit machine-readable current issue details
+linear issue view ABC-123
+linear issue view 123
+linear issue view ABC-123 --text            # human/debug output
+linear issue view ABC-123 --no-comments     # skip raw comments but keep commentsSummary
+linear issue view -w   # open issue in web browser
+linear issue view -a   # open issue in Linear.app
+linear issue id        # prints the issue id from current branch (e.g., "ENG-123")
+linear issue title     # prints just the issue title
+linear issue url       # prints the Linear.app URL for the issue
+linear issue pr        # creates a GitHub PR with issue details via `gh pr create`
+linear issue list      # list issues assigned to you in a table view (supports -s/--state and --sort)
+linear issue list --all --json  # list all issues across states and assignees without a limit
+linear issue list --all-states  # still defaults to your issues; use -A to include others
+linear issue list -s todo  # alias for unstarted
+linear issue list --project "My Project" --milestone "Phase 1"  # filter by milestone
+linear issue list --json  # emit machine-readable issue data
+linear issue list --all-states --query auth --priority high --updated-before 2026-03-31T00:00:00Z --due-before 2026-04-07 --json
+linear issue list --parent ENG-100 --json  # filter sub-issues of a parent issue
+linear issue list -w   # open issue list in web browser
+linear issue list -a   # open issue list in Linear.app
+linear issue start ENG-123  # create/switch to issue branch and mark as started
+linear issue start --interactive  # choose an issue interactively in a terminal
+linear issue start ENG-123 --dry-run  # preview the branch and target state
+linear issue create --interactive  # create a new issue with interactive prompts
+linear issue create -t "title" -d "description"  # create with flags
+cat description.md | linear issue create -t "title" --team ENG  # read description from stdin
+linear issue create -t "title" --team ENG --json  # emit machine-readable created issue data
+linear issue create -t "title" --team ENG --dry-run --json  # preview the created issue payload
+linear issue create-batch --file ./issue-batch.json --json  # create a parent issue and child issues from JSON
+linear issue create-batch --file ./issue-batch.json --dry-run --json  # preview a batch without creating issues
+linear issue create --project "My Project" --milestone "Phase 1"  # create with milestone
+linear issue update ENG-123 --interactive  # update an issue with interactive prompts
+cat description.md | linear issue update ENG-123 --state started  # read description from stdin
+linear issue update ENG-123 --due-date 2026-03-31  # set an issue due date
+linear issue update ENG-123 --clear-due-date       # clear an issue due date
+linear issue update ENG-123 --assignee self --json  # emit machine-readable updated issue data
+linear issue update ENG-123 --state started --comment "Work has started"  # update and comment in one command
+linear issue update ENG-123 --state started --comment "Work has started" --dry-run  # preview issue updates
+linear issue update ENG-123 --milestone "Phase 2"  # set milestone on existing issue
+linear issue delete    # delete an issue
+linear issue comment list          # list comments on current issue
+linear issue comment add           # add a comment to current issue
+linear issue comment add ENG-123 "follow-up"  # add a comment with positional body
+printf "follow-up\n" | linear issue comment add ENG-123  # read comment body from stdin
+linear issue comment add -p <id>   # reply to a specific comment
+linear issue comment add ENG-123 --body "follow-up" --json  # emit created comment data
+linear issue comment add ENG-123 --body "follow-up" --dry-run --json  # preview comment creation
+linear issue relation add ENG-123 blocked-by ENG-100 --json  # emit machine-readable relation creation data
+linear issue relation add ENG-123 blocked-by ENG-100 --dry-run --json  # preview relation creation
+linear issue relation delete ENG-123 blocked-by ENG-100 --json  # emit machine-readable relation deletion data
+linear issue relation delete ENG-123 blocked-by ENG-100 --dry-run --json  # preview relation deletion
+linear issue relation list ENG-123 --json  # emit dependency graph for an issue
+linear issue comment update <id>   # update a comment
+printf "reworded comment\n" | linear issue comment update <id>  # read updated body from stdin
+linear issue commits               # show all commits for an issue (jj only)
+linear issue parent ENG-123 --json    # emit the parent issue, or null when absent
+linear issue children ENG-123 --json  # emit child issues for decomposition workflows
+```
+
+For short inline text, `-d/--description` is fine. For Markdown content, prefer `--description-file <path>` or pipe content on stdin to avoid shell escaping issues.
+
+`issue create-batch` expects a JSON file shaped like:
+
+```json
+{
+  "team": "ENG",
+  "project": "Roadmap",
+  "parent": {
+    "title": "Manager bot rollout",
+    "description": "Coordinate rollout work",
+    "state": "started"
+  },
+  "children": [
+    { "title": "Add issue list JSON", "assignee": "self" },
+    { "title": "Add issue view JSON", "dueDate": "2026-04-15" }
+  ]
+}
+```
+
+`issue create-batch` creates the parent first and then creates each child in order. If a later child fails, already created issues are not rolled back. Use `--dry-run --json` to preview the plan first. In `--json` mode, partial failures include `error.details.createdIdentifiers` and `error.details.failedStep` so automation can resume from the remaining work instead of rerunning the same batch unchanged.
+
+### team commands
+
+```bash
+linear team list       # list teams
+linear team list --json  # emit contract-stable team summaries
+linear team view ENG --json  # emit contract-stable team details
+linear team id         # print out the team id (e.g. for scripts)
+linear team members    # list team members
+linear team members ENG --json  # emit assignable candidates for a team
+linear team create     # create a new team
+linear team autolinks  # configure GitHub repository autolinks for Linear issues
+```
+
+### cycle commands
+
+```bash
+linear cycle list --team ENG
+linear cycle list --team ENG --json  # emit cycle summaries for automation
+linear cycle view "Sprint 42" --team ENG --json  # emit detailed cycle payload
+linear cycle current --team ENG --json  # emit active cycle or null
+linear cycle next --team ENG --json  # emit next cycle or null
+```
+
+### project commands
+
+```bash
+linear project list    # list projects
+linear project list --json  # emit contract-stable project summaries
+linear project view <projectIdOrSlug>    # view project details
+linear project view <projectIdOrSlug> --json  # emit contract-stable project details
+linear project create --name "Platform Refresh" --team ENG --dry-run --json  # preview a project create
+linear project update <projectIdOrSlug> --name "Platform Refresh" --dry-run  # preview a project update
+linear project delete <projectIdOrSlug> --dry-run  # preview a project deletion
+linear project label add <projectIdOrSlug> <labelNameOrId>     # attach a project label
+linear project label remove <projectIdOrSlug> <labelNameOrId>  # detach a project label
+```
+
+### milestone commands
+
+```bash
+linear milestone list --project <projectId>     # list milestones for a project
+linear milestone list --project <projectId> --json  # emit contract-stable milestone summaries
+linear m list --project <projectId>             # list milestones (alias)
+linear milestone view <milestoneId>             # view milestone details
+linear milestone view <milestoneId> --json      # emit contract-stable milestone details
+linear m view <milestoneId>                     # view milestone (alias)
+linear milestone create --project <projectId> --name "Q1 Goals" --target-date "2026-03-31"  # create a milestone
+linear milestone create --project <projectId> --name "Q1 Goals" --dry-run   # preview a milestone create
+linear m create --project <projectId>           # create a milestone (interactive)
+linear milestone update <milestoneId> --name "New Name"  # update milestone name
+linear milestone update <milestoneId> --name "New Name" --dry-run           # preview a milestone update
+linear m update <milestoneId> --target-date "2026-04-15"  # update target date
+linear milestone delete <milestoneId>           # delete a milestone
+linear milestone delete <milestoneId> --dry-run                                # preview a milestone delete
+linear m delete <milestoneId> --yes             # delete without confirmation
+```
+
+### document commands
+
+manage Linear documents from the command line. documents can be attached to projects or issues, or exist at the workspace level.
+
+```bash
+# list documents
+linear document list                            # list all accessible documents
+linear docs list                                # alias for document
+linear document list --project <projectId>      # filter by project
+linear document list --issue TC-123             # filter by issue
+linear document list --json                     # output as JSON
+
+# view a document
+linear document view <slug>                     # view document rendered in terminal
+linear document view <slug> --raw               # output raw markdown (for piping)
+linear document view <slug> --web               # open in browser
+linear document view <slug> --json              # output as JSON
+
+# create a document
+linear document create --title "My Doc" --content "# Hello"           # inline content
+linear document create --title "Spec" --content-file ./spec.md        # from file
+linear document create --title "Doc" --project <projectId>            # attach to project
+linear document create --title "Notes" --issue TC-123                 # attach to issue
+linear document create --title "Spec" --content "# Draft" --dry-run   # preview a document create
+cat spec.md | linear document create --title "Spec"                   # from stdin
+
+# update a document
+linear document update <slug> --title "New Title"                     # update title
+linear document update <slug> --content-file ./updated.md             # update content
+linear document update <slug> --edit                                  # open in $EDITOR
+linear document update <slug> --title "New Title" --dry-run           # preview a document update
+
+# delete a document
+linear document delete <slug>                   # soft delete (move to trash)
+linear document delete <slug> --permanent       # permanent delete
+linear document delete --bulk <slug1> <slug2>   # bulk delete
+linear document delete <slug> --dry-run         # preview a document delete
+```
+
+### notification commands
+
+manage your Linear inbox from the command line with a primitive GraphQL-aligned surface.
+
+```bash
+linear notification list                  # list recent notifications
+linear notification list --unread         # show only unread notifications
+linear notification count                 # show unread notification count
+linear notification read <notificationId> # mark a notification as read
+linear notification archive <notificationId>  # archive a notification
+linear notification list --json           # output as JSON
+```
+
+### webhook commands
+
+manage Linear webhooks with a primitive GraphQL-aligned surface.
+
+```bash
+linear webhook list
+linear webhook list --team ENG
+linear webhook view <webhookId>
+linear webhook create --url https://example.com/linear --resource-types Issue,Comment
+linear webhook create --url https://example.com/linear --resource-types Issue,Comment --dry-run --json
+linear webhook update <webhookId> --disabled
+linear webhook update <webhookId> --disabled --dry-run --json
+linear webhook delete <webhookId> --yes
+linear webhook delete <webhookId> --dry-run --json
+linear webhook list --json
+```
+
+### workflow state commands
+
+inspect workflow states directly, without going through issue mutations.
+
+```bash
+linear workflow-state list --team ENG
+linear workflow-state list --team ENG --json
+linear workflow-state view <workflowStateId>
+linear workflow-state view <workflowStateId> --json
+```
+
+### label commands
+
+inspect issue labels and project labels directly with a primitive GraphQL-aligned surface.
+
+```bash
+linear label list
+linear label list --team ENG
+linear label list --json
+linear project-label list
+linear project-label list --include-archived
+linear project-label list --json
+```
+
+### project label commands
+
+inspect workspace project labels directly with a primitive GraphQL-aligned surface.
+
+```bash
+linear project-label list
+linear project-label list --include-archived
+linear project-label list --json
+```
+
+### user commands
+
+inspect workspace users directly with a primitive GraphQL-aligned surface.
+
+```bash
+linear user list
+linear user list --all
+linear user list --json  # emit contract-stable user summaries
+linear user view <userId>
+linear user view <userId> --json  # emit contract-stable user details
+```
+
+### other commands
+
+```bash
+linear --help          # show all commands
+linear --version       # show version
+linear config --profile human-debug --interactive  # maintainer setup flow
+linear completions     # generate shell completions
+```
+
+## configuration options
+
+the CLI supports configuration via environment variables or a `.linear.toml` config file. environment variables take precedence over config file values.
+
+| option          | env var                  | toml key          | example                    | description                           |
+| --------------- | ------------------------ | ----------------- | -------------------------- | ------------------------------------- |
+| Team ID         | `LINEAR_TEAM_ID`         | `team_id`         | `"ENG"`                    | default team for operations           |
+| Workspace       | `LINEAR_WORKSPACE`       | `workspace`       | `"mycompany"`              | workspace slug for web/app URLs       |
+| Issue sort      | `LINEAR_ISSUE_SORT`      | `issue_sort`      | `"priority"` or `"manual"` | how to sort issue lists               |
+| VCS             | `LINEAR_VCS`             | `vcs`             | `"git"` or `"jj"`          | version control system (default: git) |
+| Download images | `LINEAR_DOWNLOAD_IMAGES` | `download_images` | `true` or `false`          | download images when viewing issues   |
+
+the config file can be placed at (checked in order, first found is used):
+
+- `./linear.toml` or `./.linear.toml` (current directory)
+- `<repo-root>/linear.toml` or `<repo-root>/.linear.toml` (repository root)
+- `<repo-root>/.config/linear.toml`
+- `$XDG_CONFIG_HOME/linear/linear.toml` or `~/.config/linear/linear.toml` (Unix)
+- `%APPDATA%\linear\linear.toml` (Windows)
+
+## skills
+
+linear-cli includes a skill that helps AI agents use the CLI effectively. for use cases outside the CLI, it includes instructions to interact directly with the graphql api, including authentication.
+
+### claude code
+
+install the skill using [claude code's plugin system](https://code.claude.com/docs/en/skills):
+
+```bash
+# from claude code
+/plugin marketplace add kyaukyuai/linear-cli
+/plugin install linear-cli@linear-cli
+
+# from bash
+claude plugin marketplace add kyaukyuai/linear-cli
+claude plugin install linear-cli@linear-cli
+
+# to update
+claude plugin marketplace update linear-cli
+claude plugin update linear-cli@linear-cli
+```
+
+### skills.sh for other agents
+
+install the skill using [skills.sh](https://skills.sh):
+
+```bash
+npx skills add kyaukyuai/linear-cli
+```
+
+view the skill at [skills.sh/kyaukyuai/linear-cli/linear-cli](https://skills.sh/kyaukyuai/linear-cli/linear-cli)
+
+### clawhub publish for maintainers
+
+if you want to publish the generated skill to ClawHub, use the `skills/linear-cli/` directory as the publish target.
+
+> **note:** the CLI is `clawhub`, not `clawdhub`
+
+```bash
+cd skills/linear-cli
+npx clawhub@latest login
+npx clawhub@latest whoami
+npx clawhub@latest publish . \
+  --slug kyaukyuai-linear-cli \
+  --name "Linear CLI" \
+  --version 2.1.0 \
+  --changelog "Refresh skill docs for linear-cli v2.1.0" \
+  --tags latest
+```
+
+guidance:
+
+- publish from `skills/linear-cli/`, not the repository root
+- keep `--slug kyaukyuai-linear-cli` and `--name "Linear CLI"` stable unless the public skill identity changes
+- when the skill matches a CLI release, prefer using the same version as `deno.json` and `CHANGELOG.md`
+- if the skill contents changed but no CLI release was cut, bump the skill version independently before publishing
+- run `deno task generate-skill-docs` first if command help or skill references changed
+
+the generic `linear-cli` slug is already taken on ClawHub, so this fork publishes as `kyaukyuai-linear-cli`.
+
+## development
+
+### release operations
+
+maintainer release and publish recovery steps are documented in [docs/release-runbook.md](docs/release-runbook.md).
+
+### updating skill documentation
+
+the skill documentation in `skills/linear-cli/` is automatically generated from the CLI help text. after making changes to commands or help text, regenerate the docs:
+
+```bash
+deno task generate-skill-docs
+```
+
+this will:
+
+- discover all commands and subcommands from `linear --help`
+- generate reference documentation for each command
+- update the `SKILL.md` file from `SKILL.template.md`
+
+**important:** the CI checks will fail if the generated docs are out of date, so make sure to run this before committing changes that affect command structure or help text.
+
+### code formatting
+
+ensure code is formatted consistently:
+
+```bash
+deno fmt
+```
+
+the project uses deno's built-in formatter with configuration in `deno.json`. formatting is checked in CI.
+
+## why
+
+linear's UI is incredibly good but it slows me down. i find the following pretty grating to experience frequently:
+
+- switching context from my repo to linear
+- not being on the right view when i open linear
+- linear suggests a git branch, but i have to do the work of creating or switching to that branch
+- linear's suggested git branch doesn't account for it already existing or having a merged pull request
+
+this cli solves this. it knows what you're working on (via git branches or jj commit trailers), does the work of managing your version control state, and will write your pull request details for you.
+
+[^1]: creating an API key requires member access, it is not available for guest accounts.

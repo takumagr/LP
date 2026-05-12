@@ -1,0 +1,4 @@
+- name: Setup Deno
+  uses: ./.github/actions/setup-deno
+- name: Generate GraphQL code
+  run: deno task codegen

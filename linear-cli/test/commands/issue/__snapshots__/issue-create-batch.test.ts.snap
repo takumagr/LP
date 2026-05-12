@@ -1,0 +1,301 @@
+export const snapshot = {};
+
+snapshot[`Issue Create Batch Command - Help Text 1`] = `
+stdout:
+"
+Usage: create-batch
+
+Description:
+
+  Create a parent issue and child issues from a JSON file
+
+Options:
+
+  -h, --help                 - Show this help.                                 
+  --file        <path>       - Path to a JSON file describing the issue batch  
+  --team        <team>       - Team key override for the batch file            
+  --project     <project>    - Project name override for the batch file        
+  -j, --json                 - Output as JSON                                  
+  --dry-run                  - Preview the batch without creating issues       
+  --timeout-ms  <timeoutMs>  - Timeout for write confirmation in milliseconds  
+
+Examples:
+
+  Preview a parent and child issue batch linear issue create-batch --file rollout.json --dry-run
+  Create a batch and return JSON         linear issue create-batch --file rollout.json --json   
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Create Batch Command - JSON Output 1`] = `
+stdout:
+'{
+  "team": "ENG",
+  "project": "Roadmap",
+  "parent": {
+    "id": "issue-parent-500",
+    "identifier": "ENG-500",
+    "title": "Manager bot rollout",
+    "url": "https://linear.app/test-team/issue/ENG-500/manager-bot-rollout",
+    "dueDate": null,
+    "assignee": {
+      "id": "user-self-123",
+      "name": "alice.bot",
+      "displayName": "Alice Bot",
+      "initials": "AB"
+    },
+    "parent": null,
+    "state": {
+      "name": "In Progress",
+      "color": "#f87462"
+    }
+  },
+  "children": [
+    {
+      "id": "issue-child-501",
+      "identifier": "ENG-501",
+      "title": "Add issue list JSON",
+      "url": "https://linear.app/test-team/issue/ENG-501/add-issue-list-json",
+      "dueDate": null,
+      "assignee": {
+        "id": "user-self-123",
+        "name": "alice.bot",
+        "displayName": "Alice Bot",
+        "initials": "AB"
+      },
+      "parent": {
+        "id": "issue-parent-500",
+        "identifier": "ENG-500",
+        "title": "Manager bot rollout",
+        "url": "https://linear.app/test-team/issue/ENG-500/manager-bot-rollout",
+        "dueDate": null,
+        "state": {
+          "name": "In Progress",
+          "color": "#f87462"
+        }
+      },
+      "state": {
+        "name": "Todo",
+        "color": "#cccccc"
+      }
+    },
+    {
+      "id": "issue-child-502",
+      "identifier": "ENG-502",
+      "title": "Add issue view JSON",
+      "url": "https://linear.app/test-team/issue/ENG-502/add-issue-view-json",
+      "dueDate": "2026-04-15",
+      "assignee": null,
+      "parent": {
+        "id": "issue-parent-500",
+        "identifier": "ENG-500",
+        "title": "Manager bot rollout",
+        "url": "https://linear.app/test-team/issue/ENG-500/manager-bot-rollout",
+        "dueDate": null,
+        "state": {
+          "name": "In Progress",
+          "color": "#f87462"
+        }
+      },
+      "state": {
+        "name": "Todo",
+        "color": "#cccccc"
+      }
+    }
+  ],
+  "counts": {
+    "totalCreated": 3,
+    "childCount": 2
+  },
+  "receipt": {
+    "operationId": "issue.create-batch",
+    "resource": "issue_batch",
+    "action": "create",
+    "resolvedRefs": {
+      "teamKey": "ENG",
+      "project": "Roadmap",
+      "parentIssueIdentifier": "ENG-500"
+    },
+    "appliedChanges": [
+      "parent",
+      "children"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.create-batch",
+    "resource": "issue_batch",
+    "action": "create",
+    "summary": "Created 3 issues in batch for ENG",
+    "refs": {
+      "teamKey": "ENG",
+      "project": "Roadmap",
+      "parentIssueIdentifier": "ENG-500"
+    },
+    "changes": [
+      "parent",
+      "children"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Create Batch Command - JSON Dry Run 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would create 3 issues in batch for ENG",
+  "data": {
+    "command": "issue.create-batch",
+    "team": {
+      "id": "team-eng-id",
+      "key": "ENG"
+    },
+    "project": {
+      "id": "project-roadmap-id",
+      "nameOrSlug": "Roadmap"
+    },
+    "parent": {
+      "title": "Manager bot rollout",
+      "description": "Coordinate rollout work",
+      "assigneeId": "user-self-123",
+      "dueDate": null,
+      "parent": null,
+      "priority": 2,
+      "estimate": null,
+      "labelIds": [
+        "label-automation-id"
+      ],
+      "teamId": "team-eng-id",
+      "projectId": "project-roadmap-id",
+      "projectMilestoneId": null,
+      "cycleId": null,
+      "stateId": "state-started",
+      "useDefaultTemplate": true
+    },
+    "children": [
+      {
+        "title": "Add issue list JSON",
+        "description": "Expose machine-readable list output",
+        "assigneeId": "user-self-123",
+        "dueDate": null,
+        "parent": {
+          "id": "(created parent issue id)",
+          "identifier": "(parent issue created in batch)"
+        },
+        "priority": null,
+        "estimate": null,
+        "labelIds": [],
+        "teamId": "team-eng-id",
+        "projectId": "project-roadmap-id",
+        "projectMilestoneId": null,
+        "cycleId": null,
+        "stateId": null,
+        "useDefaultTemplate": true
+      },
+      {
+        "title": "Add issue view JSON",
+        "description": null,
+        "assigneeId": null,
+        "dueDate": "2026-04-15",
+        "parent": {
+          "id": "(created parent issue id)",
+          "identifier": "(parent issue created in batch)"
+        },
+        "priority": 3,
+        "estimate": null,
+        "labelIds": [],
+        "teamId": "team-eng-id",
+        "projectId": "project-roadmap-id",
+        "projectMilestoneId": null,
+        "cycleId": null,
+        "stateId": null,
+        "useDefaultTemplate": true
+      }
+    ],
+    "counts": {
+      "totalPlanned": 3,
+      "childCount": 2
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "issue.create-batch",
+    "resource": "issue_batch",
+    "action": "create",
+    "summary": "Would create 3 issues in batch for ENG",
+    "refs": {
+      "teamKey": "ENG",
+      "projectId": "project-roadmap-id",
+      "project": "Roadmap"
+    },
+    "changes": [
+      "parent",
+      "children"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Create Batch Command - Partial Failure 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to create issue batch: Issue batch creation failed while creating child 2 of 2
+  Already created issues: ENG-600, ENG-601. Remove already created issues from the batch file before retrying, or rerun only the remaining work.
+"
+`;
+
+snapshot[`Issue Create Batch Command - JSON Partial Failure 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "cli_error",
+    "message": "Issue batch creation failed while creating child 2 of 2",
+    "suggestion": "Already created issues: ENG-600, ENG-601. Remove already created issues from the batch file before retrying, or rerun only the remaining work.",
+    "context": "Failed to create issue batch",
+    "details": {
+      "command": "issue.create-batch",
+      "createdIdentifiers": [
+        "ENG-600",
+        "ENG-601"
+      ],
+      "createdCount": 2,
+      "failedStep": {
+        "stage": "child",
+        "index": 2,
+        "total": 2,
+        "title": "Create second child"
+      },
+      "retryable": false,
+      "retryHint": "Do not rerun the same batch file unchanged after a partial failure. Remove already created issues from the input or rerun only the remaining work."
+    }
+  }
+}
+'
+stderr:
+""
+`;

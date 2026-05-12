@@ -1,0 +1,61 @@
+export const snapshot = {};
+
+snapshot[`Milestone Create Command - Help Text 1`] = `
+stdout:
+'
+Usage: create --project <projectId> --name <name>
+
+Description:
+
+  Create a new project milestone
+
+Options:
+
+  -h, --help                    - Show this help.                                      
+  --project      <projectId>    - Project ID                                 (required)
+  --name         <name>         - Milestone name                             (required)
+  --description  <description>  - Milestone description                                
+  --target-date  <date>         - Target date (YYYY-MM-DD)                             
+  --dry-run                     - Preview the milestone without creating it            
+
+Examples:
+
+  Create a milestone         linear milestone create --project auth-refresh --name "Beta launch"                                   
+  Preview milestone creation linear milestone create --project auth-refresh --name "Beta launch" --target-date 2026-05-01 --dry-run
+
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone Create Command - Success 1`] = `
+stdout:
+"✓ Created milestone: Q1 Goals
+  ID: milestone-new-1
+  Target Date: 2026-03-31
+  Project: Test Project
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone Create Command - Minimal Fields 1`] = `
+stdout:
+"✓ Created milestone: Simple Milestone
+  ID: milestone-new-2
+  Project: Another Project
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone Create Command - Dry Run 1`] = `
+stdout:
+"Dry run: Would create milestone Preview Milestone
+Milestone: Preview Milestone
+Project: 550e8400-e29b-41d4-a716-446655440099
+Target date: 2026-03-31
+"
+stderr:
+""
+`;

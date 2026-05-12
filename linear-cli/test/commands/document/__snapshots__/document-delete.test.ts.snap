@@ -1,0 +1,70 @@
+export const snapshot = {};
+
+snapshot[`Document Delete Command - Help Text 1`] = `
+stdout:
+"
+Usage: delete [documentId]
+
+Description:
+
+  Delete a document (moves to trash)
+
+Options:
+
+  -h, --help                   - Show this help.                                     
+  -i, --interactive            - Enable interactive confirmation                     
+  -y, --yes                    - Skip confirmation prompt                            
+  --bulk             <ids...>  - Delete multiple documents by slug or ID             
+  --bulk-file        <file>    - Read document slugs/IDs from a file (one per line)  
+  --bulk-stdin                 - Read document slugs/IDs from stdin                  
+  --dry-run                    - Preview the deletion without mutating documents     
+
+"
+stderr:
+""
+`;
+
+snapshot[`Document Delete Command - Soft Delete 1`] = `
+stdout:
+"✓ Deleted document: Test Document
+"
+stderr:
+""
+`;
+
+snapshot[`Document Delete Command - Document Not Found 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to delete document: Document not found: nonexistent123
+"
+`;
+
+snapshot[`Document Delete Command - Bulk Delete 1`] = `
+stdout:
+"Found 2 document(s) to delete.
+
+✓ Successfully deleted 2 documents
+"
+stderr:
+""
+`;
+
+snapshot[`Document Delete Command - Missing ID 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to delete document: Document ID required
+  Use --bulk for multiple documents.
+"
+`;
+
+snapshot[`Document Delete Command - Dry Run 1`] = `
+stdout:
+"Dry run: Would delete document Test Document
+Document: Test Document
+ID: doc-uuid-123
+"
+stderr:
+""
+`;
