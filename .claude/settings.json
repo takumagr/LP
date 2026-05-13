@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "linear-cli": {
+      "source": {
+        "source": "directory",
+        "path": "./linear-cli"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "linear-cli@linear-cli": true
+  }
+}
