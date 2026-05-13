@@ -1,0 +1,142 @@
+export const snapshot = {};
+
+snapshot[`Project Create Command - Help Text 1`] = `
+stdout:
+'
+Usage: create
+
+Description:
+
+  Create a new Linear project
+
+Options:
+
+  -h, --help                        - Show this help.                                                          
+  -n, --name         <name>         - Project name (required)                                                  
+  -d, --description  <description>  - Project description                                                      
+  -t, --team         <team>         - Team key (required, can be repeated for multiple teams)                  
+  -l, --lead         <lead>         - Project lead (username, email, or @me)                                   
+  -s, --status       <status>       - Project status (planned, started, paused, completed, canceled, backlog)  
+  --start-date       <startDate>    - Start date (YYYY-MM-DD)                                                  
+  --target-date      <targetDate>   - Target completion date (YYYY-MM-DD)                                      
+  --initiative       <initiative>   - Add to initiative immediately (ID, slug, or name)                        
+  -i, --interactive                 - Enable interactive prompts                                               
+  -j, --json                        - Output created project as JSON                                           
+  --dry-run                         - Preview the project without creating it                                  
+
+Examples:
+
+  Create a project as JSON linear project create --name "Auth refresh" --team ENG --json                    
+  Preview project creation linear project create --name "Auth refresh" --team ENG --status planned --dry-run
+
+'
+stderr:
+""
+`;
+
+snapshot[`Project Create Command - With JSON Output 1`] = `
+stdout:
+'{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "slugId": "json-test-project",
+  "name": "JSON Test Project",
+  "url": "https://linear.app/test/project/json-test-project",
+  "receipt": {
+    "operationId": "project.create",
+    "resource": "project",
+    "action": "create",
+    "resolvedRefs": {
+      "projectId": "550e8400-e29b-41d4-a716-446655440000",
+      "projectSlugId": "json-test-project"
+    },
+    "appliedChanges": [
+      "name",
+      "teams"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "project.create",
+    "resource": "project",
+    "action": "create",
+    "summary": "Created project JSON Test Project",
+    "refs": {
+      "projectId": "550e8400-e29b-41d4-a716-446655440000",
+      "projectSlugId": "json-test-project"
+    },
+    "changes": [
+      "name",
+      "teams"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Project Create Command - Dry Run JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would create project Dry Run Project",
+  "data": {
+    "command": "project.create",
+    "operation": "create",
+    "destructive": false,
+    "target": {
+      "resource": "project",
+      "name": "Dry Run Project"
+    },
+    "changes": {
+      "input": {
+        "name": "Dry Run Project",
+        "description": null,
+        "teamKeys": [
+          "ENG"
+        ],
+        "teamIds": [
+          "team-eng-123"
+        ],
+        "lead": null,
+        "leadId": null,
+        "status": null,
+        "statusId": null,
+        "startDate": null,
+        "targetDate": null,
+        "initiative": null
+      }
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "project.create",
+    "resource": "project",
+    "action": "create",
+    "summary": "Would create project Dry Run Project",
+    "refs": {
+      "name": "Dry Run Project"
+    },
+    "changes": [
+      "input"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;

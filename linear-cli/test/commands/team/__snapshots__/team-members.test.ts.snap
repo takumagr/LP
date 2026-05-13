@@ -1,0 +1,44 @@
+export const snapshot = {};
+
+snapshot[`Team Members Command - JSON Output 1`] = `
+stdout:
+'{
+  "team": "ENG",
+  "members": [
+    {
+      "id": "user-2",
+      "name": "asmith",
+      "displayName": "Alice Smith",
+      "email": "alice@example.com",
+      "active": true,
+      "initials": "AS",
+      "description": "Engineer",
+      "timezone": "America/Los_Angeles",
+      "lastSeen": "2026-03-17T10:00:00Z",
+      "statusEmoji": ":rocket:",
+      "statusLabel": "Shipping",
+      "guest": false,
+      "isAssignable": true
+    }
+  ]
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Team Members Command - JSON Team Not Found 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "not_found",
+    "message": "Team not found: ENGX",
+    "suggestion": null,
+    "context": "Failed to fetch team members"
+  }
+}
+'
+stderr:
+""
+`;

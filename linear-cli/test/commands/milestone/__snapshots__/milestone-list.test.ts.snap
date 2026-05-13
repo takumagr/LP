@@ -1,0 +1,109 @@
+export const snapshot = {};
+
+snapshot[`Milestone List Command - Help Text 1`] = `
+stdout:
+"
+Usage: list --project <projectId>
+
+Description:
+
+  List milestones for a project
+
+Options:
+
+  -h, --help               - Show this help.                                     
+  --project   <projectId>  - Project ID                                (required)
+  -j, --json               - Output as JSON                                      
+  --no-pager               - Disable automatic paging for long output            
+
+Examples:
+
+  List milestones as JSON         linear milestone list --project auth-refresh --json    
+  List milestones without a pager linear milestone list --project auth-refresh --no-pager
+
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone List Command - JSON Parse Failure 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "validation_error",
+    "message": "Missing required option \\\\"--project\\\\".",
+    "suggestion": null,
+    "context": "Failed to list milestones"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone List Command - With Mock Milestones 1`] = `
+stdout:
+"NAME                      ID                                   TARGET DATE  PROJECT     
+Infrastructure Foundation milestone-1                          2026-01-31   Test Project
+Observation Phase         milestone-2                          2026-02-28   Test Project
+Safe Enablement           milestone-3                          2026-03-31   Test Project
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone List Command - JSON Output 1`] = `
+stdout:
+'[
+  {
+    "id": "milestone-1",
+    "name": "Infrastructure Foundation",
+    "description": "Build the shared platform base",
+    "targetDate": "2026-01-31",
+    "sortOrder": 1,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-05T12:00:00Z",
+    "project": {
+      "id": "project-123",
+      "name": "Test Project",
+      "slugId": "test-project",
+      "url": "https://linear.app/test/project/test-project"
+    }
+  },
+  {
+    "id": "milestone-2",
+    "name": "Observation Phase",
+    "description": null,
+    "targetDate": "2026-02-28",
+    "sortOrder": 2,
+    "createdAt": "2026-01-06T10:00:00Z",
+    "updatedAt": "2026-01-10T12:00:00Z",
+    "project": {
+      "id": "project-123",
+      "name": "Test Project",
+      "slugId": "test-project",
+      "url": "https://linear.app/test/project/test-project"
+    }
+  }
+]
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone List Command - No Milestones Found 1`] = `
+stdout:
+"No milestones found for this project.
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone List Command - No Milestones Found JSON 1`] = `
+stdout:
+"[]
+"
+stderr:
+""
+`;

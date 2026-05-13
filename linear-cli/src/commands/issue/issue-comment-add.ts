@@ -1,0 +1,369 @@
+import { Command } from "@cliffy/command"
+import { Input } from "@cliffy/prompt"
+import { basename } from "@std/path"
+import {
+  getIssueIdentifier,
+  resolveIssueInternalId,
+} from "../../utils/linear.ts"
+import {
+  formatAsMarkdownLink,
+  uploadFile,
+  validateFilePath,
+} from "../../utils/upload.ts"
+import { shouldShowSpinner } from "../../utils/hyperlink.ts"
+import {
+  handleAutomationCommandError,
+  handleAutomationContractParseError,
+} from "../../utils/json_output.ts"
+import { emitDryRunOutput } from "../../utils/dry_run.ts"
+import { ensureInteractiveInputAvailable } from "../../utils/interactive.ts"
+import { isWriteTimeoutError, ValidationError } from "../../utils/errors.ts"
+import { readTextFromStdin } from "../../utils/stdin.ts"
+import { resolveWriteTimeoutMs } from "../../utils/write_timeout.ts"
+import { getGraphQLClient } from "../../utils/graphql.ts"
+import { reconcileWriteTimeoutError } from "../../utils/write_reconciliation.ts"
+import {
+  buildOperationReceipt,
+  withOperationReceipt,
+} from "../../utils/operation_receipt.ts"
+import {
+  buildWriteApplyOperationFromReceipt,
+  buildWritePreviewOperation,
+  withWriteOperationContract,
+} from "../../utils/write_operation.ts"
+import { createIssueComment } from "./issue-comment-utils.ts"
+import { buildIssueCommentPayload } from "./issue-comment-payload.ts"
+import { buildIssueCommentDryRunPayload } from "./issue-dry-run-payload.ts"
+import { findIssueCommentForTimeoutReconciliation } from "./issue-reconciliation.ts"
+
+export const commentAddCommand = new Command()
+  .name("add")
+  .description("Add a comment to an issue or reply to a comment")
+  .arguments("[issueId:string] [body:string]")
+  .option("-b, --body <text:string>", "Comment body text")
+  .option(
+    "--body-file <path:string>",
+    "Read comment body from a file (preferred for markdown content)",
+  )
+  .option("-p, --parent <id:string>", "Parent comment ID for replies")
+  .option(
+    "-a, --attach <filepath:string>",
+    "Attach a file to the comment (can be used multiple times)",
+    { collect: true },
+  )
+  .option("-i, --interactive", "Enable interactive body prompts")
+  .option("-j, --json", "Output as JSON")
+  .option("--dry-run", "Preview the comment without creating it")
+  .option(
+    "--timeout-ms <timeoutMs:number>",
+    "Timeout for write confirmation in milliseconds",
+  )
+  .example(
+    "Add a comment with a positional body",
+    'linear issue comment add ENG-123 "Ready for review"',
+  )
+  .example(
+    "Preview a comment from a file",
+    "linear issue comment add ENG-123 --body-file review.md --dry-run",
+  )
+  .example(
+    "Pipe a comment body from stdin",
+    'printf "Ready for review\\n" | linear issue comment add ENG-123',
+  )
+  .example(
+    "Reply to a comment as JSON",
+    'linear issue comment add ENG-123 --parent comment_123 --body "Following up" --json',
+  )
+  .error((error, cmd) => {
+    handleAutomationContractParseError(error, cmd, "Failed to add comment")
+  })
+  .action(async (options, issueId, bodyArg) => {
+    const {
+      body,
+      bodyFile,
+      parent,
+      attach,
+      interactive,
+      json,
+      dryRun,
+      timeoutMs,
+    } = options
+
+    try {
+      const writeTimeoutMs = resolveWriteTimeoutMs(timeoutMs)
+      // Validate that body sources are not both provided
+      if (body != null && bodyFile != null) {
+        throw new ValidationError(
+          "Cannot specify both --body and --body-file",
+        )
+      }
+      if (body != null && bodyArg != null) {
+        throw new ValidationError(
+          "Cannot specify both a positional comment body and --body",
+          {
+            suggestion:
+              'Pass the comment body either as `linear issue comment add <ISSUE> "text"` or with --body.',
+          },
+        )
+      }
+
+      // Read body from file if provided
+      let commentBody = bodyArg ?? body
+      if (bodyFile) {
+        try {
+          commentBody = await Deno.readTextFile(bodyFile)
+        } catch (error) {
+          throw new ValidationError(
+            `Failed to read body file: ${bodyFile}`,
+            {
+              suggestion: `Error: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          )
+        }
+      } else if (commentBody == null) {
+        const stdinBody = await readTextFromStdin()
+        if (stdinBody != null) {
+          commentBody = stdinBody
+        }
+      }
+
+      const resolvedIdentifier = await getIssueIdentifier(issueId)
+      if (!resolvedIdentifier) {
+        throw new ValidationError(
+          "Could not determine issue ID",
+          { suggestion: "Please provide an issue ID like 'ENG-123'." },
+        )
+      }
+      const resolvedIssueId = await resolveIssueInternalId(resolvedIdentifier)
+
+      // Validate and upload attachments first
+      const attachments = attach || []
+      const uploadedFiles: {
+        filename: string
+        assetUrl: string
+        isImage: boolean
+      }[] = []
+
+      if (attachments.length > 0) {
+        // Validate all files exist before uploading
+        for (const filepath of attachments) {
+          await validateFilePath(filepath)
+        }
+
+        if (!dryRun) {
+          // Upload files
+          for (const filepath of attachments) {
+            const result = await uploadFile(filepath, {
+              showProgress: !json && shouldShowSpinner(),
+            })
+            uploadedFiles.push({
+              filename: result.filename,
+              assetUrl: result.assetUrl,
+              isImage: result.contentType.startsWith("image/"),
+            })
+            if (!json) {
+              console.log(`✓ Uploaded ${result.filename}`)
+            }
+          }
+        }
+      }
+
+      // If no body provided and no attachments, prompt for it
+      if (!commentBody && uploadedFiles.length === 0) {
+        if (json || dryRun) {
+          throw new ValidationError(
+            "Comment body cannot be empty",
+            {
+              suggestion: dryRun
+                ? "Provide --body, --body-file, or --attach when using --dry-run."
+                : "Provide --body or --body-file when requesting --json output.",
+            },
+          )
+        }
+        ensureInteractiveInputAvailable(
+          { interactive },
+          "Comment body cannot be empty",
+          "Provide --body, --body-file, or pipe the comment body on stdin. Use --profile human-debug --interactive to enter it in a terminal.",
+        )
+        commentBody = await Input.prompt({
+          message: "Comment body",
+          default: "",
+        })
+
+        if (!commentBody.trim()) {
+          throw new ValidationError("Comment body cannot be empty")
+        }
+      }
+
+      // Append attachment links to comment body
+      if (uploadedFiles.length > 0) {
+        const attachmentLinks = uploadedFiles.map((file) => {
+          return formatAsMarkdownLink({
+            filename: file.filename,
+            assetUrl: file.assetUrl,
+            contentType: file.isImage
+              ? "image/png"
+              : "application/octet-stream",
+            size: 0,
+          })
+        })
+
+        if (commentBody) {
+          commentBody = `${commentBody}\n\n${attachmentLinks.join("\n")}`
+        } else {
+          commentBody = attachmentLinks.join("\n")
+        }
+      }
+
+      if (commentBody == null) {
+        throw new ValidationError("Comment body cannot be empty")
+      }
+
+      if (dryRun) {
+        const previewPayload = buildIssueCommentDryRunPayload({
+          issue: {
+            id: resolvedIssueId,
+            identifier: resolvedIdentifier,
+          },
+          body: commentBody,
+          parentId: parent,
+          attachments: attachments.map((filepath) => ({
+            path: filepath,
+            filename: basename(filepath),
+          })),
+        })
+        const summary = `Would add comment to ${resolvedIdentifier}`
+        emitDryRunOutput({
+          json,
+          summary,
+          data: previewPayload,
+          operation: buildWritePreviewOperation({
+            command: "issue.comment.add",
+            resource: "comment",
+            action: "add",
+            summary,
+            refs: {
+              issueIdentifier: resolvedIdentifier,
+              parentCommentId: parent ?? null,
+            },
+            changes: [
+              "comment",
+              ...(attachments.length > 0 ? ["attachments"] : []),
+            ],
+          }),
+          lines: [
+            `Issue: ${resolvedIdentifier}`,
+            ...(parent != null ? [`Reply to: ${parent}`] : []),
+            ...(attachments.length > 0
+              ? [`Attachments: ${attachments.length}`]
+              : []),
+          ],
+        })
+        return
+      }
+
+      const input: {
+        body: string
+        issueId: string
+        parentId?: string
+      } = {
+        body: commentBody,
+        issueId: resolvedIssueId,
+      }
+
+      if (parent) {
+        input.parentId = parent
+      }
+
+      const client = getGraphQLClient()
+      let comment
+      try {
+        comment = await createIssueComment(input, {
+          client,
+          spinnerEnabled: !json,
+          timeoutMs: writeTimeoutMs,
+        })
+      } catch (error) {
+        if (isWriteTimeoutError(error)) {
+          await reconcileWriteTimeoutError(error, async () => {
+            const reconciledComment =
+              await findIssueCommentForTimeoutReconciliation(
+                client,
+                resolvedIdentifier,
+                commentBody,
+                {
+                  parentId: parent,
+                  fallbackIssue: {
+                    id: resolvedIssueId,
+                    identifier: resolvedIdentifier,
+                    title: null,
+                    url: null,
+                  },
+                },
+              )
+
+            if (reconciledComment != null) {
+              return {
+                outcome: "probably_succeeded",
+                suggestion:
+                  "Linear now shows the comment. Treat this write as succeeded unless you need stronger confirmation.",
+                details: {
+                  commentObserved: true,
+                  comment: reconciledComment,
+                },
+              }
+            }
+
+            return {
+              outcome: "definitely_failed",
+              suggestion:
+                "Linear does not yet show the comment. Re-check the issue before retrying this write.",
+              details: {
+                commentObserved: false,
+              },
+            }
+          })
+        }
+        throw error
+      }
+
+      if (json) {
+        const commentPayload = buildIssueCommentPayload(comment, {
+          id: resolvedIssueId,
+          identifier: resolvedIdentifier,
+          title: null,
+          url: null,
+        })
+        const receipt = buildOperationReceipt({
+          operationId: "issue.comment.add",
+          resource: "comment",
+          action: "add",
+          resolvedRefs: {
+            issueIdentifier: resolvedIdentifier,
+            parentCommentId: parent ?? null,
+          },
+          appliedChanges: ["comment"],
+          nextSafeAction: "read_before_retry",
+        })
+        console.log(JSON.stringify(
+          withWriteOperationContract(
+            withOperationReceipt(commentPayload, receipt),
+            buildWriteApplyOperationFromReceipt(
+              `Added comment to ${resolvedIdentifier}`,
+              receipt,
+            ),
+          ),
+          null,
+          2,
+        ))
+        return
+      }
+
+      console.log(`✓ Comment added to ${resolvedIdentifier}`)
+      console.log(comment.url)
+    } catch (error) {
+      handleAutomationCommandError(error, "Failed to add comment", json)
+    }
+  })

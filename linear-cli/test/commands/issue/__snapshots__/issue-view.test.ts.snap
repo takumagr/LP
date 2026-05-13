@@ -1,0 +1,444 @@
+export const snapshot = {};
+
+snapshot[`Issue View Command - Help Text 1`] = `
+stdout:
+"
+Usage: view [issueId]
+
+Description:
+
+  View issue details (default) or open in browser/app
+
+Options:
+
+  -h, --help     - Show this help.                                
+  -w, --web      - Open in web browser                            
+  -a, --app      - Open in Linear.app                             
+  --no-comments  - Exclude comments from the output               
+  --no-pager     - Disable automatic paging for long output       
+  -j, --json     - Force machine-readable JSON output             
+  --text         - Output human-readable text                     
+  --no-download  - Keep remote URLs instead of downloading files  
+
+Examples:
+
+  View issue as JSON          linear issue view ENG-123 --json                  
+  View issue in the terminal  linear issue view ENG-123 --text                  
+  View issue without comments linear issue view ENG-123 --no-comments --no-pager
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With Mock Server Terminal No Comments 1`] = `
+stdout:
+"# TEST-123: Fix authentication bug in login flow
+
+Users are experiencing issues logging in when their session expires. This affects the main authentication flow and needs to be resolved quickly.
+
+## Steps to reproduce
+1. Log in to the application
+2. Wait for session to expire
+3. Try to perform an authenticated action
+4. Observe the error
+
+## Expected behavior
+User should be redirected to login page with clear messaging.
+
+## Actual behavior
+User sees cryptic error message and gets stuck.
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With No Comments Flag 1`] = `
+stdout:
+"# TEST-123: Fix authentication bug in login flow
+
+**Due:** 2025-08-25
+
+Users are experiencing issues logging in when their session expires.
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With Comments Default 1`] = `
+stdout:
+"# TEST-123: Fix authentication bug in login flow
+
+Users are experiencing issues logging in when their session expires.
+
+## Comments
+
+- **@Bob Senior** - *1/15/2024*
+
+  Should we also consider implementing automatic session refresh?
+
+- **@John Doe** - *1/15/2024*
+
+  I've reproduced this issue on staging. The session timeout seems to be too aggressive.
+
+  - **@Jane Smith** - *1/15/2024*
+
+    Working on a fix. Will increase the session timeout and add proper error handling.
+
+  - **@Alice Developer** - *1/15/2024*
+
+    Sounds good! Also, we should add better error messaging for expired sessions.
+
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - Issue Not Found 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to view issue: Issue not found: TEST-999
+"
+`;
+
+snapshot[`Issue View Command - JSON Issue Not Found 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "not_found",
+    "message": "Issue not found: TEST-999",
+    "suggestion": null,
+    "context": "Failed to view issue"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - JSON Output No Comments 1`] = `
+stdout:
+'{
+  "id": "issue-123",
+  "identifier": "TEST-123",
+  "title": "Fix authentication bug in login flow",
+  "description": "Users are experiencing issues logging in when their session expires.",
+  "url": "https://linear.app/test-team/issue/TEST-123/fix-authentication-bug-in-login-flow",
+  "branchName": "fix/test-123-auth-bug",
+  "dueDate": "2025-08-25",
+  "priority": 2,
+  "priorityLabel": "High",
+  "state": {
+    "name": "In Progress",
+    "color": "#f87462"
+  },
+  "assignee": {
+    "id": "user-1",
+    "name": "jane.doe",
+    "displayName": "Jane Doe",
+    "initials": "JD"
+  },
+  "project": {
+    "name": "Auth Reliability"
+  },
+  "projectMilestone": null,
+  "cycle": null,
+  "parent": {
+    "id": "issue-100",
+    "identifier": "TEST-100",
+    "title": "Epic: Security Improvements",
+    "url": "https://linear.app/test-team/issue/TEST-100/epic-security-improvements",
+    "dueDate": null,
+    "state": {
+      "name": "Backlog",
+      "color": "#bec2c8"
+    }
+  },
+  "children": [],
+  "relations": {
+    "blocks": [
+      {
+        "relationId": "relation-1",
+        "id": "issue-200",
+        "identifier": "TEST-200",
+        "title": "Update session middleware",
+        "url": "https://linear.app/test-team/issue/TEST-200/update-session-middleware",
+        "dueDate": "2025-08-20",
+        "state": {
+          "name": "Todo",
+          "color": "#bec2c8"
+        }
+      }
+    ],
+    "blockedBy": [
+      {
+        "relationId": "relation-4",
+        "id": "issue-203",
+        "identifier": "TEST-203",
+        "title": "Investigate auth regression",
+        "url": "https://linear.app/test-team/issue/TEST-203/investigate-auth-regression",
+        "dueDate": "2025-08-19",
+        "state": {
+          "name": "Started",
+          "color": "#f87462"
+        }
+      }
+    ],
+    "related": [
+      {
+        "relationId": "relation-2",
+        "id": "issue-201",
+        "identifier": "TEST-201",
+        "title": "Improve auth logging",
+        "url": "https://linear.app/test-team/issue/TEST-201/improve-auth-logging",
+        "dueDate": null,
+        "state": {
+          "name": "In Progress",
+          "color": "#f87462"
+        }
+      },
+      {
+        "relationId": "relation-5",
+        "id": "issue-204",
+        "identifier": "TEST-204",
+        "title": "Token refresh edge cases",
+        "url": "https://linear.app/test-team/issue/TEST-204/token-refresh-edge-cases",
+        "dueDate": null,
+        "state": {
+          "name": "Backlog",
+          "color": "#bec2c8"
+        }
+      }
+    ],
+    "duplicateOf": {
+      "relationId": "relation-3",
+      "id": "issue-202",
+      "identifier": "TEST-202",
+      "title": "Older auth bug report",
+      "url": "https://linear.app/test-team/issue/TEST-202/older-auth-bug-report",
+      "dueDate": null,
+      "state": {
+        "name": "Canceled",
+        "color": "#bec2c8"
+      }
+    },
+    "duplicatedBy": [
+      {
+        "relationId": "relation-6",
+        "id": "issue-205",
+        "identifier": "TEST-205",
+        "title": "Duplicate auth bug follow-up",
+        "url": "https://linear.app/test-team/issue/TEST-205/duplicate-auth-bug-follow-up",
+        "dueDate": null,
+        "state": {
+          "name": "Done",
+          "color": "#4cb782"
+        }
+      }
+    ]
+  },
+  "comments": {
+    "included": false,
+    "hasMore": false,
+    "nodes": []
+  },
+  "commentsSummary": {
+    "fetchedCount": 2,
+    "hasMore": false,
+    "topLevelCount": 1,
+    "replyCount": 1,
+    "participantCount": 2,
+    "participants": [
+      {
+        "type": "user",
+        "name": "jane.doe",
+        "displayName": "Jane Doe"
+      },
+      {
+        "type": "user",
+        "name": "john.doe",
+        "displayName": "John Doe"
+      }
+    ],
+    "latestComment": {
+      "id": "comment-2",
+      "createdAt": "2024-01-15T14:22:00Z",
+      "parentId": "comment-1",
+      "author": {
+        "type": "user",
+        "name": "jane.doe",
+        "displayName": "Jane Doe"
+      },
+      "excerpt": "Working on a fix. Will increase the session timeout and add proper error handling."
+    }
+  },
+  "attachments": []
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - JSON Output With Comments 1`] = `
+stdout:
+\`{
+  "id": "issue-123",
+  "identifier": "TEST-123",
+  "title": "Fix authentication bug in login flow",
+  "description": "Users are experiencing issues logging in when their session expires.",
+  "url": "https://linear.app/test-team/issue/TEST-123/fix-authentication-bug-in-login-flow",
+  "branchName": "fix/test-123-auth-bug",
+  "dueDate": "2025-08-25",
+  "priority": 1,
+  "priorityLabel": "Urgent",
+  "state": {
+    "name": "In Progress",
+    "color": "#f87462"
+  },
+  "assignee": {
+    "id": "user-2",
+    "name": "alex.dev",
+    "displayName": "Alex Developer",
+    "initials": "AD"
+  },
+  "project": null,
+  "projectMilestone": null,
+  "cycle": {
+    "name": "Sprint 12",
+    "number": 12
+  },
+  "parent": null,
+  "children": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "related": [
+      {
+        "relationId": "relation-7",
+        "id": "issue-301",
+        "identifier": "TEST-301",
+        "title": "Session timeout audit",
+        "url": "https://linear.app/test-team/issue/TEST-301/session-timeout-audit",
+        "dueDate": null,
+        "state": {
+          "name": "Todo",
+          "color": "#bec2c8"
+        }
+      }
+    ],
+    "duplicateOf": null,
+    "duplicatedBy": []
+  },
+  "comments": {
+    "included": true,
+    "hasMore": true,
+    "nodes": [
+      {
+        "id": "comment-1",
+        "body": "I've reproduced this issue on staging. The session timeout seems to be too aggressive.",
+        "createdAt": "2024-01-15T10:30:00Z",
+        "parentId": null,
+        "author": {
+          "type": "user",
+          "name": "john.doe",
+          "displayName": "John Doe"
+        }
+      },
+      {
+        "id": "comment-2",
+        "body": "Working on a fix. Will increase the session timeout and add proper error handling.",
+        "createdAt": "2024-01-15T14:22:00Z",
+        "parentId": "comment-1",
+        "author": {
+          "type": "user",
+          "name": "jane.smith",
+          "displayName": "Jane Smith"
+        }
+      }
+    ]
+  },
+  "commentsSummary": {
+    "fetchedCount": 2,
+    "hasMore": true,
+    "topLevelCount": 1,
+    "replyCount": 1,
+    "participantCount": 2,
+    "participants": [
+      {
+        "type": "user",
+        "name": "jane.smith",
+        "displayName": "Jane Smith"
+      },
+      {
+        "type": "user",
+        "name": "john.doe",
+        "displayName": "John Doe"
+      }
+    ],
+    "latestComment": {
+      "id": "comment-2",
+      "createdAt": "2024-01-15T14:22:00Z",
+      "parentId": "comment-1",
+      "author": {
+        "type": "user",
+        "name": "jane.smith",
+        "displayName": "Jane Smith"
+      },
+      "excerpt": "Working on a fix. Will increase the session timeout and add proper error handling."
+    }
+  },
+  "attachments": []
+}
+\`
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With Parent And Sub-issues 1`] = `
+stdout:
+"# TEST-456: Implement user authentication
+
+Add user authentication to the application.
+
+## Parent
+
+- **TEST-100**: Epic: Security Improvements _[In Progress]_
+
+
+## Sub-issues
+
+- **TEST-457**: Add login form _[Done]_
+- **TEST-458**: Add password reset flow _[Todo]_
+- **TEST-459**: Add OAuth support _[In Progress]_
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With Project And Milestone 1`] = `
+stdout:
+"# TEST-789: Add monitoring dashboards
+
+**Due:** 2025-08-31 | **Project:** Platform Infrastructure Q1 | **Milestone:** Phase 2: Observability
+
+Set up Datadog dashboards for the new service.
+"
+stderr:
+""
+`;
+
+snapshot[`Issue View Command - With Cycle 1`] = `
+stdout:
+"# TEST-890: Implement rate limiting
+
+**Project:** API Gateway v2 | **Cycle:** Sprint 7
+
+Add rate limiting to the API gateway.
+"
+stderr:
+""
+`;

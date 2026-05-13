@@ -1,0 +1,203 @@
+export const snapshot = {};
+
+snapshot[`Milestone View Command - Help Text 1`] = `
+stdout:
+"
+Usage: view <milestoneId>
+
+Description:
+
+  View milestone details
+
+Options:
+
+  -h, --help  - Show this help.  
+  -j, --json  - Output as JSON   
+
+Examples:
+
+  View a milestone as JSON         linear milestone view milestone-123 --json
+  View a milestone in the terminal linear milestone view milestone-123       
+
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - JSON Missing Milestone Reference 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "unknown_error",
+    "message": "Missing argument(s): milestoneId",
+    "suggestion": null,
+    "context": "Failed to view milestone"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - With Full Details 1`] = `
+stdout:
+"# Q1 Goals
+
+**ID:** milestone-123
+**Target Date:** 2026-03-31
+**Project:** Platform Infrastructure (platform-infra)
+**Project URL:** https://linear.app/test/project/platform-infra
+
+**Created:** 1/1/2020
+**Updated:** 1/15/2020
+
+## Description
+
+First quarter objectives and key results
+
+## Issues
+
+**Total Issues:** 3
+**Completed:** 1
+**In Progress:** 1
+**To Do:** 1
+
+**Recent Issues:**
+
+- ENG-123: Implement authentication (In Progress)
+- ENG-124: Setup database (Done)
+- ENG-125: Create API endpoints (Todo)
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "milestone-123",
+  "name": "Q1 Goals",
+  "description": "First quarter objectives and key results",
+  "targetDate": "2026-03-31",
+  "sortOrder": 1,
+  "createdAt": "2020-01-01T10:00:00Z",
+  "updatedAt": "2020-01-15T14:30:00Z",
+  "project": {
+    "id": "project-456",
+    "name": "Platform Infrastructure",
+    "slugId": "platform-infra",
+    "url": "https://linear.app/test/project/platform-infra"
+  },
+  "issueSummary": {
+    "total": 2,
+    "completed": 1,
+    "started": 1,
+    "unstarted": 0,
+    "backlog": 0,
+    "triage": 0,
+    "canceled": 0
+  },
+  "issues": [
+    {
+      "id": "issue-1",
+      "identifier": "ENG-123",
+      "title": "Implement authentication",
+      "state": {
+        "name": "In Progress",
+        "type": "started",
+        "color": "#f59e0b"
+      }
+    },
+    {
+      "id": "issue-2",
+      "identifier": "ENG-124",
+      "title": "Setup database",
+      "state": {
+        "name": "Done",
+        "type": "completed",
+        "color": "#22c55e"
+      }
+    }
+  ]
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - Minimal Details 1`] = `
+stdout:
+"# Simple Milestone
+
+**ID:** milestone-789
+**Target Date:** Not set
+**Project:** Test Project (test-proj)
+**Project URL:** https://linear.app/test/project/test-proj
+
+**Created:** 1/10/2020
+**Updated:** 1/10/2020
+
+_No issues in this milestone yet._
+"
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - JSON Milestone Not Found 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "not_found",
+    "message": "Milestone not found: missing",
+    "suggestion": null,
+    "context": "Failed to view milestone"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Milestone View Command - Many Issues 1`] = `
+stdout:
+"# Big Release
+
+**ID:** milestone-456
+**Target Date:** 2026-06-30
+**Project:** Product Team (product)
+**Project URL:** https://linear.app/test/project/product
+
+**Created:** 1/5/2020
+**Updated:** 1/20/2020
+
+## Description
+
+Major product release with many features
+
+## Issues
+
+**Total Issues:** 15
+**Completed:** 5
+**In Progress:** 5
+**To Do:** 5
+
+**Recent Issues:**
+
+- PROD-1: Feature 1 (Done)
+- PROD-2: Feature 2 (Done)
+- PROD-3: Feature 3 (Done)
+- PROD-4: Feature 4 (Done)
+- PROD-5: Feature 5 (Done)
+- PROD-6: Feature 6 (In Progress)
+- PROD-7: Feature 7 (In Progress)
+- PROD-8: Feature 8 (In Progress)
+- PROD-9: Feature 9 (In Progress)
+- PROD-10: Feature 10 (In Progress)
+
+_...and 5 more issues_
+"
+stderr:
+""
+`;

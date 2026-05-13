@@ -1,0 +1,143 @@
+export const snapshot = {};
+
+snapshot[`Issue Comment Add Command - With Body Flag 1`] = `
+stdout:
+"✓ Comment added to TEST-123
+https://linear.app/issue/TEST-123#comment-uuid-456
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Comment Add Command - With Positional Body 1`] = `
+stdout:
+"✓ Comment added to TEST-123
+https://linear.app/issue/TEST-123#comment-uuid-positional-456
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Comment Add Command - With Parent Flag 1`] = `
+stdout:
+"✓ Comment added to TEST-123
+https://linear.app/issue/TEST-123#comment-uuid-reply-789
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Comment Add Command - Body Conflict 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "validation_error",
+    "message": "Cannot specify both a positional comment body and --body",
+    "suggestion": "Pass the comment body either as \`linear issue comment add <ISSUE> \\\\"text\\\\"\` or with --body.",
+    "context": "Failed to add comment"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Comment Add Command - JSON Output 1`] = `
+stdout:
+'{
+  "id": "comment-json-123",
+  "body": "Tracking follow-up",
+  "createdAt": "2026-03-17T14:30:00Z",
+  "url": "https://linear.app/issue/TEST-123#comment-json-123",
+  "parentId": null,
+  "issue": {
+    "id": "issue-uuid-123",
+    "identifier": "TEST-123",
+    "title": "Tracking issue",
+    "url": "https://linear.app/issue/TEST-123"
+  },
+  "user": {
+    "name": "testuser",
+    "displayName": "Test User"
+  },
+  "receipt": {
+    "operationId": "issue.comment.add",
+    "resource": "comment",
+    "action": "add",
+    "resolvedRefs": {
+      "issueIdentifier": "TEST-123",
+      "parentCommentId": null
+    },
+    "appliedChanges": [
+      "comment"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.comment.add",
+    "resource": "comment",
+    "action": "add",
+    "summary": "Added comment to TEST-123",
+    "refs": {
+      "issueIdentifier": "TEST-123",
+      "parentCommentId": null
+    },
+    "changes": [
+      "comment"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Comment Add Command - JSON Dry Run 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would add comment to TEST-123",
+  "data": {
+    "command": "issue.comment.add",
+    "issue": {
+      "id": "issue-uuid-123",
+      "identifier": "TEST-123"
+    },
+    "body": "Tracking follow-up",
+    "parentId": null,
+    "attachments": []
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "issue.comment.add",
+    "resource": "comment",
+    "action": "add",
+    "summary": "Would add comment to TEST-123",
+    "refs": {
+      "issueIdentifier": "TEST-123",
+      "parentCommentId": null
+    },
+    "changes": [
+      "comment"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;

@@ -1,0 +1,245 @@
+import { Command } from "@cliffy/command"
+import { green } from "@std/fmt/colors"
+import { gql } from "../../__codegen__/gql.ts"
+import { getGraphQLClient } from "../../utils/graphql.ts"
+import { emitDryRunOutput } from "../../utils/dry_run.ts"
+import {
+  buildOperationReceipt,
+  withOperationReceipt,
+} from "../../utils/operation_receipt.ts"
+import { CliError, handleError, ValidationError } from "../../utils/errors.ts"
+import { handleAutomationCommandError } from "../../utils/json_output.ts"
+import { withSpinner } from "../../utils/spinner.ts"
+import { buildWriteCommandPreview } from "../../utils/write_preview.ts"
+import {
+  buildWriteApplyOperationFromReceipt,
+  buildWritePreviewOperationFromPayload,
+  withWriteOperationContract,
+} from "../../utils/write_operation.ts"
+import {
+  getWebhookDisplayLabel,
+  getWebhookScope,
+  parseWebhookResourceTypes,
+  validateWebhookUrl,
+} from "./webhook-utils.ts"
+
+const UpdateWebhook = gql(`
+  mutation UpdateWebhook($id: String!, $input: WebhookUpdateInput!) {
+    webhookUpdate(id: $id, input: $input) {
+      success
+      webhook {
+        id
+        label
+        url
+        enabled
+        archivedAt
+        allPublicTeams
+        resourceTypes
+        createdAt
+        updatedAt
+        team {
+          id
+          key
+          name
+        }
+        creator {
+          id
+          name
+          displayName
+        }
+      }
+    }
+  }
+`)
+
+export const updateCommand = new Command()
+  .name("update")
+  .description("Update a webhook")
+  .arguments("<webhookId:string>")
+  .option("-u, --url <url:string>", "New webhook URL")
+  .option(
+    "-r, --resource-types <resourceTypes:string>",
+    "New comma-separated resource types",
+  )
+  .option("-l, --label <label:string>", "New webhook label")
+  .option("--secret <secret:string>", "New secret used to sign payloads")
+  .option("--enabled", "Enable the webhook")
+  .option("--disabled", "Disable the webhook")
+  .option("-j, --json", "Output as JSON")
+  .option("--dry-run", "Preview the update without mutating the webhook")
+  .example(
+    "Preview a webhook update",
+    'linear webhook update webhook_123 --label "Primary webhook" --resource-types Issue,Comment --dry-run',
+  )
+  .example(
+    "Disable a webhook as JSON",
+    "linear webhook update webhook_123 --disabled --json",
+  )
+  .action(
+    async (
+      { url, resourceTypes, label, secret, enabled, disabled, json, dryRun },
+      webhookId,
+    ) => {
+      try {
+        if (enabled && disabled) {
+          throw new ValidationError("Cannot use both --enabled and --disabled")
+        }
+
+        const input: {
+          url?: string
+          resourceTypes?: string[]
+          label?: string
+          secret?: string
+          enabled?: boolean
+        } = {}
+
+        if (url != null) {
+          input.url = validateWebhookUrl(url)
+        }
+        if (resourceTypes != null) {
+          input.resourceTypes = parseWebhookResourceTypes(resourceTypes)
+        }
+        if (label != null) {
+          input.label = label
+        }
+        if (secret != null) {
+          input.secret = secret
+        }
+        if (enabled) {
+          input.enabled = true
+        }
+        if (disabled) {
+          input.enabled = false
+        }
+
+        if (Object.keys(input).length === 0) {
+          throw new ValidationError("At least one update option is required", {
+            suggestion:
+              "Use --label, --url, --resource-types, --secret, --enabled, or --disabled.",
+          })
+        }
+
+        if (dryRun) {
+          const previewPayload = buildWriteCommandPreview({
+            command: "webhook.update",
+            operation: "update",
+            target: {
+              resource: "webhook",
+              id: webhookId,
+            },
+            changes: {
+              url: input.url ?? null,
+              label: input.label ?? null,
+              resourceTypes: input.resourceTypes ?? [],
+              enabled: input.enabled ?? null,
+              secretProvided: secret != null,
+            },
+          })
+          const summary = `Would update webhook ${webhookId}`
+          emitDryRunOutput({
+            json,
+            summary,
+            data: previewPayload,
+            operation: buildWritePreviewOperationFromPayload(
+              summary,
+              previewPayload,
+            ),
+            lines: [
+              `Webhook: ${webhookId}`,
+              ...Object.entries(input).map(([key, value]) =>
+                key === "secret"
+                  ? "secret: [provided]"
+                  : `${key}: ${
+                    Array.isArray(value) ? value.join(", ") : String(value)
+                  }`
+              ),
+            ],
+          })
+          return
+        }
+
+        const client = getGraphQLClient()
+        const result = await withSpinner(
+          () => client.request(UpdateWebhook, { id: webhookId, input }),
+          { enabled: !json },
+        )
+
+        if (!result.webhookUpdate.success || !result.webhookUpdate.webhook) {
+          throw new CliError("Failed to update webhook")
+        }
+
+        const webhook = result.webhookUpdate.webhook
+
+        if (json) {
+          const payload = {
+            id: webhook.id,
+            label: webhook.label,
+            url: webhook.url,
+            enabled: webhook.enabled,
+            archivedAt: webhook.archivedAt,
+            allPublicTeams: webhook.allPublicTeams,
+            resourceTypes: webhook.resourceTypes,
+            createdAt: webhook.createdAt,
+            updatedAt: webhook.updatedAt,
+            team: webhook.team
+              ? {
+                id: webhook.team.id,
+                key: webhook.team.key,
+                name: webhook.team.name,
+              }
+              : null,
+            creator: webhook.creator
+              ? {
+                id: webhook.creator.id,
+                name: webhook.creator.name,
+                displayName: webhook.creator.displayName,
+              }
+              : null,
+          }
+          const receipt = buildOperationReceipt({
+            operationId: "webhook.update",
+            resource: "webhook",
+            action: "update",
+            resolvedRefs: {
+              webhookId: webhook.id,
+              webhookUrl: webhook.url,
+            },
+            appliedChanges: [
+              ...(input.url != null ? ["url"] : []),
+              ...(input.label != null ? ["label"] : []),
+              ...(input.resourceTypes != null ? ["resourceTypes"] : []),
+              ...(input.enabled != null ? ["enabled"] : []),
+              ...(secret != null ? ["secret"] : []),
+            ],
+            nextSafeAction: "read_before_retry",
+          })
+          console.log(JSON.stringify(
+            withWriteOperationContract(
+              withOperationReceipt(payload, receipt),
+              buildWriteApplyOperationFromReceipt(
+                `Updated webhook ${webhook.id}`,
+                receipt,
+              ),
+            ),
+            null,
+            2,
+          ))
+          return
+        }
+
+        console.log(
+          green("✓") +
+            ` Updated webhook: ${getWebhookDisplayLabel(webhook.label)}`,
+        )
+        console.log(`  ID: ${webhook.id}`)
+        console.log(`  URL: ${webhook.url ?? "-"}`)
+        console.log(`  Scope: ${getWebhookScope(webhook)}`)
+        console.log(`  Resources: ${webhook.resourceTypes.join(", ")}`)
+      } catch (error) {
+        if (json) {
+          handleAutomationCommandError(error, "Failed to update webhook", true)
+        }
+        handleError(error, "Failed to update webhook")
+      }
+    },
+  )

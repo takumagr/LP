@@ -1,0 +1,284 @@
+import { Command } from "@cliffy/command"
+import { green } from "@std/fmt/colors"
+import { gql } from "../../__codegen__/gql.ts"
+import { getGraphQLClient } from "../../utils/graphql.ts"
+import { emitDryRunOutput } from "../../utils/dry_run.ts"
+import { getTeamIdByKey, requireTeamKey } from "../../utils/linear.ts"
+import {
+  buildOperationReceipt,
+  withOperationReceipt,
+} from "../../utils/operation_receipt.ts"
+import {
+  CliError,
+  handleError,
+  NotFoundError,
+  ValidationError,
+} from "../../utils/errors.ts"
+import { handleAutomationCommandError } from "../../utils/json_output.ts"
+import { withSpinner } from "../../utils/spinner.ts"
+import { buildWriteCommandPreview } from "../../utils/write_preview.ts"
+import {
+  buildWriteApplyOperationFromReceipt,
+  buildWritePreviewOperationFromPayload,
+  withWriteOperationContract,
+} from "../../utils/write_operation.ts"
+import {
+  getWebhookDisplayLabel,
+  getWebhookScope,
+  parseWebhookResourceTypes,
+  validateWebhookUrl,
+} from "./webhook-utils.ts"
+
+const CreateWebhook = gql(`
+  mutation CreateWebhook($input: WebhookCreateInput!) {
+    webhookCreate(input: $input) {
+      success
+      webhook {
+        id
+        label
+        url
+        enabled
+        archivedAt
+        allPublicTeams
+        resourceTypes
+        createdAt
+        updatedAt
+        team {
+          id
+          key
+          name
+        }
+        creator {
+          id
+          name
+          displayName
+        }
+      }
+    }
+  }
+`)
+
+export const createCommand = new Command()
+  .name("create")
+  .description("Create a webhook")
+  .option("-u, --url <url:string>", "Webhook URL (required)")
+  .option(
+    "-r, --resource-types <resourceTypes:string>",
+    "Comma-separated resource types (e.g. Issue,Comment)",
+  )
+  .option("-l, --label <label:string>", "Webhook label")
+  .option(
+    "-t, --team <teamKey:string>",
+    "Team key (defaults to current team)",
+  )
+  .option(
+    "--all-public-teams",
+    "Enable the webhook for all public teams instead of a specific team",
+  )
+  .option("--secret <secret:string>", "Secret used to sign webhook payloads")
+  .option("--disabled", "Create the webhook disabled")
+  .option("-j, --json", "Output as JSON")
+  .option("--dry-run", "Preview the webhook without creating it")
+  .example(
+    "Preview creating a team webhook",
+    "linear webhook create --url https://example.com/hooks/linear --resource-types Issue,Comment --team ENG --dry-run",
+  )
+  .example(
+    "Create an all-public-teams webhook as JSON",
+    "linear webhook create --url https://example.com/hooks/linear --resource-types Issue --all-public-teams --json",
+  )
+  .action(
+    async (
+      {
+        url,
+        resourceTypes,
+        label,
+        team,
+        allPublicTeams,
+        secret,
+        disabled,
+        json,
+        dryRun,
+      },
+    ) => {
+      try {
+        if (url == null) {
+          throw new ValidationError("Webhook URL is required", {
+            suggestion: "Use --url with an absolute URL.",
+          })
+        }
+
+        if (team != null && allPublicTeams) {
+          throw new ValidationError(
+            "Cannot use both --team and --all-public-teams",
+          )
+        }
+
+        const validatedUrl = validateWebhookUrl(url)
+        const parsedResourceTypes = parseWebhookResourceTypes(resourceTypes, {
+          required: true,
+        })
+
+        const input: {
+          url: string
+          resourceTypes: string[]
+          label?: string
+          secret?: string
+          enabled: boolean
+          teamId?: string
+          allPublicTeams?: boolean
+        } = {
+          url: validatedUrl,
+          resourceTypes: parsedResourceTypes,
+          enabled: !disabled,
+        }
+
+        if (label != null) {
+          input.label = label
+        }
+        if (secret != null) {
+          input.secret = secret
+        }
+
+        if (allPublicTeams) {
+          input.allPublicTeams = true
+        } else {
+          const teamKey = requireTeamKey(team)
+          const teamId = await getTeamIdByKey(teamKey)
+          if (!teamId) {
+            throw new NotFoundError("Team", teamKey)
+          }
+          input.teamId = teamId
+        }
+
+        if (dryRun) {
+          const previewPayload = buildWriteCommandPreview({
+            command: "webhook.create",
+            operation: "create",
+            target: {
+              resource: "webhook",
+              url: validatedUrl,
+            },
+            changes: {
+              input: {
+                url: validatedUrl,
+                label: label ?? null,
+                enabled: !disabled,
+                allPublicTeams: allPublicTeams || false,
+                resourceTypes: parsedResourceTypes,
+                teamKey: allPublicTeams ? null : requireTeamKey(team),
+                teamId: input.teamId ?? null,
+                secretProvided: secret != null,
+              },
+            },
+          })
+          const summary = `Would create webhook for ${validatedUrl}`
+          emitDryRunOutput({
+            json,
+            summary,
+            data: previewPayload,
+            operation: buildWritePreviewOperationFromPayload(
+              summary,
+              previewPayload,
+            ),
+            lines: [
+              `URL: ${validatedUrl}`,
+              `Resources: ${parsedResourceTypes.join(", ")}`,
+              ...(label != null ? [`Label: ${label}`] : []),
+              ...(allPublicTeams
+                ? ["Scope: all public teams"]
+                : [`Team: ${requireTeamKey(team)}`]),
+            ],
+          })
+          return
+        }
+
+        const client = getGraphQLClient()
+        const result = await withSpinner(
+          () => client.request(CreateWebhook, { input }),
+          { enabled: !json },
+        )
+
+        if (!result.webhookCreate.success || !result.webhookCreate.webhook) {
+          throw new CliError("Failed to create webhook")
+        }
+
+        const webhook = result.webhookCreate.webhook
+
+        if (json) {
+          const payload = {
+            id: webhook.id,
+            label: webhook.label,
+            url: webhook.url,
+            enabled: webhook.enabled,
+            archivedAt: webhook.archivedAt,
+            allPublicTeams: webhook.allPublicTeams,
+            resourceTypes: webhook.resourceTypes,
+            createdAt: webhook.createdAt,
+            updatedAt: webhook.updatedAt,
+            team: webhook.team
+              ? {
+                id: webhook.team.id,
+                key: webhook.team.key,
+                name: webhook.team.name,
+              }
+              : null,
+            creator: webhook.creator
+              ? {
+                id: webhook.creator.id,
+                name: webhook.creator.name,
+                displayName: webhook.creator.displayName,
+              }
+              : null,
+          }
+          const receipt = buildOperationReceipt({
+            operationId: "webhook.create",
+            resource: "webhook",
+            action: "create",
+            resolvedRefs: {
+              webhookId: webhook.id,
+              webhookUrl: webhook.url,
+              teamKey: webhook.team?.key ?? null,
+            },
+            appliedChanges: [
+              "url",
+              ...(webhook.label != null ? ["label"] : []),
+              "enabled",
+              "resourceTypes",
+              ...(webhook.team != null || webhook.allPublicTeams
+                ? ["scope"]
+                : []),
+              ...(secret != null ? ["secret"] : []),
+            ],
+            nextSafeAction: "read_before_retry",
+          })
+          console.log(JSON.stringify(
+            withWriteOperationContract(
+              withOperationReceipt(payload, receipt),
+              buildWriteApplyOperationFromReceipt(
+                `Created webhook ${webhook.id}`,
+                receipt,
+              ),
+            ),
+            null,
+            2,
+          ))
+          return
+        }
+
+        console.log(
+          green("✓") +
+            ` Created webhook: ${getWebhookDisplayLabel(webhook.label)}`,
+        )
+        console.log(`  ID: ${webhook.id}`)
+        console.log(`  URL: ${webhook.url ?? "-"}`)
+        console.log(`  Scope: ${getWebhookScope(webhook)}`)
+        console.log(`  Resources: ${webhook.resourceTypes.join(", ")}`)
+      } catch (error) {
+        if (json) {
+          handleAutomationCommandError(error, "Failed to create webhook", true)
+        }
+        handleError(error, "Failed to create webhook")
+      }
+    },
+  )

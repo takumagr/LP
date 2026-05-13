@@ -1,0 +1,23 @@
+{
+  "name": "linear-cli",
+  "owner": {
+    "name": "kyaukyuai"
+  },
+  "description": "marketplace for linear-cli claude code plugin",
+  "version": "1.9.1",
+  "plugins": [
+    {
+      "name": "linear-cli",
+      "description": "skill for using the linear-cli to manage Linear issues",
+      "version": "1.9.1",
+      "author": {
+        "name": "kyaukyuai"
+      },
+      "homepage": "https://github.com/kyaukyuai/linear-cli",
+      "source": "./",
+      "skills": [
+        "./skills/linear-cli"
+      ]
+    }
+  ]
+}

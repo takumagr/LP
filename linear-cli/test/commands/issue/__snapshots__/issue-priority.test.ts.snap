@@ -1,0 +1,105 @@
+export const snapshot = {};
+
+snapshot[`Issue Priority Command - Help Text 1`] = `
+stdout:
+"
+Usage: priority <issueId> <priority>
+
+Description:
+
+  Set the priority of an issue
+
+Options:
+
+  -h, --help  - Show this help.  
+  -j, --json  - Output as JSON   
+
+Examples:
+
+  Set urgent     linear issue priority ENG-123 1
+  Set high       linear issue priority ENG-123 2
+  Set medium     linear issue priority ENG-123 3
+  Set low        linear issue priority ENG-123 4
+  Clear priority linear issue priority ENG-123 0
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Priority Command - Invalid Priority 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to set priority: Invalid priority: 5
+  Use 0-4 or none/urgent/high/medium/low
+"
+`;
+
+snapshot[`Issue Priority Command - Invalid Priority Name 1`] = `
+stdout:
+""
+stderr:
+"✗ Failed to set priority: Invalid priority: p1
+  Use 0-4 or none/urgent/high/medium/low
+"
+`;
+
+snapshot[`Issue Priority Command - Set Urgent 1`] = `
+stdout:
+"✓ Set ENG-123 priority to Urgent
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Priority Command - Set High By Name 1`] = `
+stdout:
+"✓ Set ENG-123 priority to High
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Priority Command - JSON Output 1`] = `
+stdout:
+'{
+  "identifier": "ENG-123",
+  "priority": 1,
+  "receipt": {
+    "operationId": "issue.priority",
+    "resource": "issue",
+    "action": "update",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123"
+    },
+    "appliedChanges": [
+      "priority"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.priority",
+    "resource": "issue",
+    "action": "update",
+    "summary": "Updated priority for ENG-123",
+    "refs": {
+      "issueIdentifier": "ENG-123"
+    },
+    "changes": [
+      "priority"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "read_before_retry"
+  }
+}
+'
+stderr:
+""
+`;

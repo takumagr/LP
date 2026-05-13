@@ -1,0 +1,440 @@
+export const snapshot = {};
+
+snapshot[`Issue Relation Add Command - Help Text 1`] = `
+stdout:
+"
+Usage: relation add <issueId> <relationType> <relatedIssueId>
+
+Description:
+
+  Add a relation between two issues
+
+Options:
+
+  -h, --help                 - Show this help.                                    
+  -j, --json                 - Output as JSON                                     
+  --dry-run                  - Preview relation creation without mutating Linear  
+  --timeout-ms  <timeoutMs>  - Timeout for write confirmation in milliseconds     
+
+Examples:
+
+  Mark issue as blocked by another linear issue relation add ENG-123 blocked-by ENG-100
+  Mark issue as blocking another   linear issue relation add ENG-123 blocks ENG-456    
+  Mark issues as related           linear issue relation add ENG-123 related ENG-456   
+  Mark issue as duplicate          linear issue relation add ENG-123 duplicate ENG-100 
+
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - blocks 1`] = `
+stdout:
+"✓ Created relation: ENG-123 blocks ENG-456
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - blocked-by shows correct order 1`] = `
+stdout:
+"✓ Created relation: ENG-123 blocked-by ENG-456
+"
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "noOp": false,
+  "direction": "incoming",
+  "relationType": "blocked-by",
+  "issue": {
+    "id": "issue-id-123",
+    "identifier": "ENG-123"
+  },
+  "relatedIssue": {
+    "id": "issue-id-456",
+    "identifier": "ENG-456"
+  },
+  "relationId": "relation-id-2",
+  "receipt": {
+    "operationId": "issue.relation.add",
+    "resource": "issue_relation",
+    "action": "add",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocked-by"
+    },
+    "appliedChanges": [
+      "relation"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.relation.add",
+    "resource": "issue_relation",
+    "action": "add",
+    "summary": "Created relation: ENG-123 blocked-by ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocked-by"
+    },
+    "changes": [
+      "relation"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - JSON No-op When Already Present 1`] = `
+stdout:
+'{
+  "success": true,
+  "noOp": true,
+  "direction": "outgoing",
+  "relationType": "blocks",
+  "issue": {
+    "id": "issue-id-123",
+    "identifier": "ENG-123"
+  },
+  "relatedIssue": {
+    "id": "issue-id-456",
+    "identifier": "ENG-456"
+  },
+  "relationId": "relation-id-existing",
+  "receipt": {
+    "operationId": "issue.relation.add",
+    "resource": "issue_relation",
+    "action": "add",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "appliedChanges": [],
+    "noOp": true,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.relation.add",
+    "resource": "issue_relation",
+    "action": "add",
+    "summary": "Relation already exists: ENG-123 blocks ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "changes": [],
+    "noOp": true,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - JSON Dry Run 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would create relation: ENG-123 blocked-by ENG-456",
+  "data": {
+    "command": "issue.relation.add",
+    "direction": "incoming",
+    "relationType": "blocked-by",
+    "issue": {
+      "id": "issue-id-123",
+      "identifier": "ENG-123"
+    },
+    "relatedIssue": {
+      "id": "issue-id-456",
+      "identifier": "ENG-456"
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "issue.relation.add",
+    "resource": "relation",
+    "action": "add",
+    "summary": "Would create relation: ENG-123 blocked-by ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocked-by"
+    },
+    "changes": [
+      "relation"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Add Command - JSON Validation Failure 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "validation_error",
+    "message": "Invalid relation type: invalid",
+    "suggestion": "Must be one of: blocks, blocked-by, related, duplicate",
+    "context": "Failed to create relation"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Delete Command - JSON Output 1`] = `
+stdout:
+'{
+  "success": true,
+  "noOp": false,
+  "direction": "outgoing",
+  "relationType": "blocks",
+  "issue": {
+    "id": "issue-id-123",
+    "identifier": "ENG-123"
+  },
+  "relatedIssue": {
+    "id": "issue-id-456",
+    "identifier": "ENG-456"
+  },
+  "relationId": "relation-id-3",
+  "receipt": {
+    "operationId": "issue.relation.delete",
+    "resource": "issue_relation",
+    "action": "delete",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "appliedChanges": [
+      "relationRemoval"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.relation.delete",
+    "resource": "issue_relation",
+    "action": "delete",
+    "summary": "Deleted relation: ENG-123 blocks ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "changes": [
+      "relationRemoval"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Delete Command - JSON No-op When Already Absent 1`] = `
+stdout:
+'{
+  "success": true,
+  "noOp": true,
+  "direction": "outgoing",
+  "relationType": "blocks",
+  "issue": {
+    "id": "issue-id-123",
+    "identifier": "ENG-123"
+  },
+  "relatedIssue": {
+    "id": "issue-id-456",
+    "identifier": "ENG-456"
+  },
+  "relationId": null,
+  "receipt": {
+    "operationId": "issue.relation.delete",
+    "resource": "issue_relation",
+    "action": "delete",
+    "resolvedRefs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "appliedChanges": [],
+    "noOp": true,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "apply",
+    "command": "issue.relation.delete",
+    "resource": "issue_relation",
+    "action": "delete",
+    "summary": "Relation already absent: ENG-123 blocks ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "changes": [],
+    "noOp": true,
+    "partialSuccess": false,
+    "nextSafeAction": "continue"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Delete Command - JSON Dry Run 1`] = `
+stdout:
+'{
+  "success": true,
+  "dryRun": true,
+  "summary": "Would delete relation: ENG-123 blocks ENG-456",
+  "data": {
+    "command": "issue.relation.delete",
+    "direction": "outgoing",
+    "relationType": "blocks",
+    "issue": {
+      "id": "issue-id-123",
+      "identifier": "ENG-123"
+    },
+    "relatedIssue": {
+      "id": "issue-id-456",
+      "identifier": "ENG-456"
+    }
+  },
+  "operation": {
+    "family": "write_operation",
+    "version": "v1",
+    "phase": "preview",
+    "command": "issue.relation.delete",
+    "resource": "relation",
+    "action": "delete",
+    "summary": "Would delete relation: ENG-123 blocks ENG-456",
+    "refs": {
+      "issueIdentifier": "ENG-123",
+      "relatedIssueIdentifier": "ENG-456",
+      "relationType": "blocks"
+    },
+    "changes": [
+      "relationRemoval"
+    ],
+    "noOp": false,
+    "partialSuccess": false,
+    "nextSafeAction": "apply"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation Delete Command - JSON Validation Failure 1`] = `
+stdout:
+'{
+  "success": false,
+  "error": {
+    "type": "validation_error",
+    "message": "Invalid relation type: invalid",
+    "suggestion": "Must be one of: blocks, blocked-by, related, duplicate",
+    "context": "Failed to delete relation"
+  }
+}
+'
+stderr:
+""
+`;
+
+snapshot[`Issue Relation List Command - JSON Output 1`] = `
+stdout:
+'{
+  "issue": {
+    "id": "issue-id-123",
+    "identifier": "ENG-123",
+    "title": "Parent issue",
+    "url": "https://linear.app/issue/ENG-123"
+  },
+  "outgoing": [
+    {
+      "id": "relation-out-1",
+      "type": "blocks",
+      "issue": {
+        "id": "issue-id-456",
+        "identifier": "ENG-456",
+        "title": "Blocked issue",
+        "url": "https://linear.app/issue/ENG-456",
+        "dueDate": "2026-03-20",
+        "state": {
+          "name": "Todo",
+          "color": "#94a3b8"
+        }
+      }
+    }
+  ],
+  "incoming": [
+    {
+      "id": "relation-in-1",
+      "type": "blocked-by",
+      "issue": {
+        "id": "issue-id-789",
+        "identifier": "ENG-789",
+        "title": "Blocking issue",
+        "url": "https://linear.app/issue/ENG-789",
+        "dueDate": null,
+        "state": {
+          "name": "In Progress",
+          "color": "#3b82f6"
+        }
+      }
+    }
+  ]
+}
+'
+stderr:
+""
+`;
